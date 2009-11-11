@@ -11,7 +11,8 @@ requires 'Catalyst::Runtime' => '5.80013';
 requires 'Catalyst::Plugin::ConfigLoader';
 requires 'Catalyst::Plugin::Static::Simple';
 requires 'Catalyst::Action::RenderView';
-requires 'Catalyst::Model::DBIC::Schema' => 0.31;
+requires 'Catalyst::Model::DBIC::Schema' => '0.31';
+requires 'Catalyst::View::TT' => '0.31';
 
 requires 'parent';
 requires 'Config::General'; 
@@ -19,6 +20,7 @@ requires 'Config::General';
 catalyst;
 
 install_script glob('script/*.pl');
+extra_tests;
 auto_install;
 auto_provides;
 WriteAll;
