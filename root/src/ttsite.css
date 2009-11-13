@@ -1,45 +1,83 @@
 
-html {
-    height: 100%;
+/* FIXME until they get back online again, at least
+@import url("http://admin.fedoraproject.org/css/layout.css");
+@import url("http://admin.fedoraproject.org/css/content.css");
+@import url("http://admin.fedoraproject.org/css/docbook.css");
+*/
+
+/*
+@import url("[% Catalyst.uri_for('/static/css/layout.css') %]");
+@import url("[% Catalyst.uri_for('/static/css/content.css') %]");
+@import url("[% Catalyst.uri_for('/static/css/docbook.css') %]");
+*/
+
+@import url("http://fedoraproject.org/static/css/fedora.css");
+
+/* snagged from https://admin.fedoraproject.org/pkgdb/static/css/pkgdb.css */
+
+a.bodhi
+{
+  padding-left: 20px;
+  background: url([% Catalyst.uri_for('/static/images/bodhi.png') %]) 0 50% no-repeat;
 }
 
-body {
-    background-color: [% site.col.page %];
-    color: [% site.col.text %];
-    margin: 0px;
-    padding: 0px;
-    height: 100%;
+a.koji
+{
+  padding-left: 20px;
+  background: url([% Catalyst.uri_for('/static/images/koji.png') %]) 0 50% no-repeat;
 }
 
-#header {
-    background-color: [% site.col.head %];
-    border-bottom: 1px solid [% site.col.line %];
+a.bugz
+{
+  padding-left: 20px;
+  background: url([% Catalyst.uri_for('/static/images/bugz.png') %]) 0 50% no-repeat;
 }
 
-#footer {
-    background-color: [% site.col.head %];
-    text-align: center;
-    border-top: 1px solid [% site.col.line %];
-    position: absolute;
-    bottom: 0;
-    left: 0px;
-    width: 100%;
-    padding: 4px;
+a.pkgdb
+{
+  padding-left: 20px;
+  background: url([% Catalyst.uri_for('/static/images/pkgdb.png') %]) 0 50% no-repeat;
 }
 
-#content {
-    padding: 10px;
+a.cvs
+{
+  padding-left: 20px;
+  background: url([% Catalyst.uri_for('/static/images/emblem-cvs-controlled.png') %]) 0 50% no-repeat;
 }
 
-h1.title {
-    padding: 4px;
-    margin: 0px;
-}
-
-.message {
-    color: [% site.col.message %];
-}
+/* plus our additional bits */
 
 .error {
-    color: [% site.col.error %];
+    background:url([% fedora.icons %]/icon-error.png) no-repeat left;
+    padding-left: 21px;
+}
+
+.info {
+    background:url([% fedora.icons %]/icon-info.png) no-repeat left;
+    padding-left: 21px;
+}
+
+.attn {
+    background:url([% fedora.icons %]/attention.png) no-repeat left;
+    padding-left: 21px;
+}
+
+.check {
+    background:url([% fedora.icons %]checkmark.png) no-repeat left;
+    padding-left: 21px;
+}
+
+.cpan {
+    background:url(http://www.perl.com/favicon.ico) no-repeat left;
+    padding-left: 20px;
+}
+
+.rt {
+    background:url(/img/rt.png) no-repeat left;
+    padding-left: 18px;
+}
+
+.bz {
+    background:url(/img/bz.png) no-repeat left;
+    padding-left: 18px;
 }

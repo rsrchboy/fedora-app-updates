@@ -8,6 +8,9 @@ __PACKAGE__->config({
         Fedora::App::Updates->path_to( 'root', 'src' ),
         Fedora::App::Updates->path_to( 'root', 'lib' )
     ],
+
+    TEMPLATE_EXTENSION => '.tt2',
+    
     PRE_PROCESS  => 'config/main',
     WRAPPER      => 'site/wrapper',
     ERROR        => 'error.tt2',

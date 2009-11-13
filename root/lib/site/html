@@ -2,9 +2,29 @@
 <html>
  <head>
   <title>[% template.title or site.title %]</title>
-  <style type="text/css">
+
+  <!--- dojo bits --->
+[% IF 0 %]
+  <link rel="stylesheet" type="text/css"
+    href="http://o.aolcdn.com/dojo/1.1/dojo/resources/dojoi.css" />
+  <script
+    type="text/javascript"
+    src="http://o.aolcdn.com/dojo/1.1/dojo/dojo.xd.js" 
+    djconfig="parseOnLoad:true">
+  </script>
+[% ELSE %]
+  <script
+    type="text/javascript"
+    src="[% Catalyst.uri_for('/static/dojo-1.3/dojo/dojo.xd.uncompressed.js') %]" 
+  />
+[% END %]
+  <style type="text/css" media="screen">
 [% PROCESS ttsite.css %]
   </style>
+  <link 
+    rel="stylesheet" type="text/css" media="print"
+    href="http://fedoraproject.org/static/css/print.css"
+  />
  </head>
  <body>
 [% content %]
