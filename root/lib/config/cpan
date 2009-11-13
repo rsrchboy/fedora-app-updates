@@ -1,0 +1,6 @@
+[%
+
+    upstream.cpan = {
+        url = 'http://search.cpan.org/dist/'
+    }
+%]

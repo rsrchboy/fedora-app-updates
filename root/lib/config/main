@@ -1,7 +1,7 @@
 [% # config/main
    #
    # This is the main configuration template which is processed before
-   # any other page, by virtue of it being defined as a PRE_PROCESS
+   # any other page, by virtue of it being defined as a PRE_PROCESS 
    # template.  This is the place to define any extra template variables,
    # macros, load plugins, and perform any other template setup.
 
@@ -12,16 +12,18 @@
 
    # define a data structure to hold sitewide data
    site = {
-     title     => 'Catalyst::View::TTSite Example Page',
-     copyright => '2009 Your Name Here',
+     title     => 'Fedora and Perl.... Perfect together!',
+     copyright => '2008 Chris Weyl &lt;cweyl@alumni.drew.edu&gt;',
    };
 
-   # load up any other configuration items
+   # load up any other configuration items 
    PROCESS config/col
-         + config/url;
+         + config/url
+         + config/fedora
+         + config/cpan;
 
-   # set defaults for variables, etc.
-   DEFAULT
-     message = 'There is no message';
+   ## set defaults for variables, etc.
+   #DEFAULT 
+   #  message = 'There is no message';
 
 -%]

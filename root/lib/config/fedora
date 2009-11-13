@@ -1,0 +1,35 @@
+[%
+    fedora = {
+        base  = "http://admin.fedoraproject.org"
+        css   = "http://admin.fedoraproject.org/css/"
+        icons = 'http://fedoraproject.org/wikidata/kindofblue/img/'
+    }
+
+    fedora.koji = {
+        base_url = 'http://koji.fedoraproject.org/koji/'
+        url = 'http://koji.fedoraproject.org/koji/search?type=package&match=glob&terms='
+        icon     = ''
+    }
+
+    fedora.bugzilla = {
+        base_url = 'http://bugzilla.redhat.com'
+        url      = 'https://bugzilla.redhat.com/bugzilla/buglist.cgi?bug_status=NEW&bug_status=ASSIGNED&bug_status=NEEDINFO&bug_status=MODIFIED&component='
+    }
+
+    fedora.bodhi = {
+        base_url = 'https://admin.fedoraproject.org/updates/'
+        url      = 'https://admin.fedoraproject.org/updates/search/' 
+        icon     = ''
+    }
+
+    fedora.pkgdb = {
+        base_url = 'https://admin.fedoraproject.org/pkgdb/'
+        url      = 'https://admin.fedoraproject.org/pkgdb/packages/name/' 
+        icon     = ''
+    }
+
+    fedora.cvs = {
+        url      = 'http://cvs.fedoraproject.org/viewcvs/rpms/'
+        base_url = 'http://cvs.fedoraproject.org/'
+    }
+%]
