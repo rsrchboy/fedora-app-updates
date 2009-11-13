@@ -6,9 +6,9 @@
 */
 
 /*
-@import url("[% Catalyst.uri_for('/static/css/layout.css') %]");
-@import url("[% Catalyst.uri_for('/static/css/content.css') %]");
-@import url("[% Catalyst.uri_for('/static/css/docbook.css') %]");
+@import url("[% c.uri_for('/static/css/layout.css') %]");
+@import url("[% c.uri_for('/static/css/content.css') %]");
+@import url("[% c.uri_for('/static/css/docbook.css') %]");
 */
 
 @import url("http://fedoraproject.org/static/css/fedora.css");
@@ -18,31 +18,31 @@
 a.bodhi
 {
   padding-left: 20px;
-  background: url([% Catalyst.uri_for('/static/images/bodhi.png') %]) 0 50% no-repeat;
+  background: url([% c.uri_for('/static/images/bodhi.png') %]) 0 50% no-repeat;
 }
 
 a.koji
 {
   padding-left: 20px;
-  background: url([% Catalyst.uri_for('/static/images/koji.png') %]) 0 50% no-repeat;
+  background: url([% c.uri_for('/static/images/koji.png') %]) 0 50% no-repeat;
 }
 
 a.bugz
 {
   padding-left: 20px;
-  background: url([% Catalyst.uri_for('/static/images/bugz.png') %]) 0 50% no-repeat;
+  background: url([% c.uri_for('/static/images/bugz.png') %]) 0 50% no-repeat;
 }
 
 a.pkgdb
 {
   padding-left: 20px;
-  background: url([% Catalyst.uri_for('/static/images/pkgdb.png') %]) 0 50% no-repeat;
+  background: url([% c.uri_for('/static/images/pkgdb.png') %]) 0 50% no-repeat;
 }
 
 a.cvs
 {
   padding-left: 20px;
-  background: url([% Catalyst.uri_for('/static/images/emblem-cvs-controlled.png') %]) 0 50% no-repeat;
+  background: url([% c.uri_for('/static/images/emblem-cvs-controlled.png') %]) 0 50% no-repeat;
 }
 
 /* plus our additional bits */

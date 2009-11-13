@@ -3,12 +3,12 @@
 <div id="nav">
   <h2>Perl Listings</h2>
   <ul>
-    <li><a href="[% Catalyst.uri_for("/packages") %]">All Packages</a></li>
-    <li><a href="[% Catalyst.uri_for("/users") %]">Users</a></li>
+    <li><a href="[% c.uri_for("/packages") %]">All Packages</a></li>
+    <li><a href="[% c.uri_for("/users") %]">Users</a></li>
   </ul>
   <h2>Navigation</h2>
   <ul>
-    <li><a href="[% Catalyst.uri_for("/") %]">Home</a></li>
+    <li><a href="[% c.uri_for("/") %]">Home</a></li>
   </ul>
 </div>
 
