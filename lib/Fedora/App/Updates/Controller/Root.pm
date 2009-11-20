@@ -26,17 +26,63 @@ Fedora::App::Updates::Controller::Root - Root Controller for Fedora::App::Update
 
 =cut
 
-sub index :Path :Args(0) {
+sub index : Path Args(0) {
     my ( $self, $c ) = @_;
 
     # Hello World
-    $c->response->body( $c->welcome_message );
+    #$c->response->body( $c->welcome_message );
 }
 
-sub default :Path {
+sub default : Path {
     my ( $self, $c ) = @_;
     $c->response->body( 'Page not found' );
     $c->response->status(404);
+}
+
+sub packages : Path('packages') Args(0) {
+    my ($self, $c) = @_;
+
+    my $rs = $c
+        ->model('Updates::Dist')
+        ->search(undef, { order_by => 'shortname DESC' })
+        ;
+
+    $c->stash->{dists} = $rs;
+
+    # setup our packages resultset
+    my $packages = $c->stash->{packages} = $c
+        ->model('Updates::Packages')
+        ->search(
+            { name => { like => 'perl%' }   },
+            { order_by => 'name', rows => 40},
+        )
+        ;
+
+    # let's try out this pager thingie, hmm?
+    my $page = $c->request->param('page');
+    $page = 1 if (not defined $page) || ($page !~ /^\d+$/);
+
+    $packages = $c->stash->{packages}->page($page);
+    $c->stash->{pager} = $packages->pager;
+
+    # get our list of dists to display
+    my @dists = $c
+        ->model('Updates::Dist')
+        ->search(undef, { order_by => 'shortname DESC' })
+        ->get_column('shortname')
+        ->all
+        ;
+    $c->stash->{dists} = \@dists;
+
+    my @dist_ids = $c
+        ->model('Updates::Dist')
+        ->search(undef, { order_by => 'shortname DESC' })
+        ->get_column('id')
+        ->all
+        ;
+    $c->stash->{dist_ids} = \@dist_ids;
+
+    return;
 }
 
 =head2 end
