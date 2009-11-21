@@ -6,17 +6,25 @@
   <!--- dojo bits --->
 [% IF 0 %]
   <link rel="stylesheet" type="text/css"
-    href="http://o.aolcdn.com/dojo/1.1/dojo/resources/dojoi.css" />
+    href="http://o.aolcdn.com/dojo/1.1/dojo/resources/dojo.css" />
   <script
     type="text/javascript"
     src="http://o.aolcdn.com/dojo/1.1/dojo/dojo.xd.js" 
     djconfig="parseOnLoad:true">
   </script>
 [% ELSE %]
+  <link rel="stylesheet" type="text/css"
+    href="http://o.aolcdn.com/dojo/1.3/dojo/resources/dojo.css" />
+  <link rel="stylesheet" type="text/css" id="themeStyles"
+    href="http://o.aolcdn.com/dojo/1.3/dijit/themes/tundra/tundra.css" />
+  <link rel="stylesheet" type="text/css" 
+    href="http://o.aolcdn.com/dojo/1.3/dijit/themes/tundra/form/Common.css" />
+  <link rel="stylesheet" type="text/css"
+    href="http://o.aolcdn.com/dojo/1.3/dijit/themes/tundra/form/Button.css" />
   <script
     type="text/javascript"
     src="[% c.uri_for('/static/dojo-1.3/dojo/dojo.js.uncompressed.js') %]" 
-    djconfig="parseOnLoad:true"
+    djconfig="parseOnLoad:true,current_domain:'localhost'"
   >
   </script>
 [% END %]

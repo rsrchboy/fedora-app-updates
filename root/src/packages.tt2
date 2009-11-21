@@ -1,0 +1,86 @@
+[% META title = 'Package Listing' %]
+
+<script type="text/javascript">
+
+dojo.require("dojox.data.ClientFilter");
+dojo.require("dojox.data.JsonRestStore"); 
+dojo.require("dijit.dijit");
+dojo.require("dijit.form.Button");
+dojo.require("dijit.form.ComboBox");
+
+var store;
+var search_box;
+
+dojo.addOnLoad(function() {
+
+    store = new dojox.data.JsonRestStore({ target: '/rest/packages' });
+    
+    search_box = new dijit.form.ComboBox({
+        name:         "search",
+        autoComplete: true,
+        store:        store,
+        pageSize:     30,
+    }, dojo.byId("[% search_form.field('search_text').id %]"));
+
+
+});
+
+</script>
+
+<!--- begin packages --->
+
+  <div id="package_search">
+  <h2>Search Packages</h2>
+      <form 
+        name="[% search_form.name %]"
+        action="[% c.uri_for("packages/search") %]"
+        method="post"
+      >
+        [% f = search_form.field('search_text') %]
+        <input type="text" id="[% f.id %]" name="[% f.name %]" value="[% f.fif %]" />
+        <input class="button" name="commit" type="submit" value="Submit" />
+      </form>
+   </div>
+
+<p>Displaying entries [% pager.first %]-[% pager.last %] of
+[% pager.total_entries %].
+
+&lt;&lt;
+<a href="[% c.req.uri_with({ page => pager.first_page }) %]">First</a>
+<a href="[% c.req.uri_with({ page => pager.previous_page
+})%]">Previous</a>
+|
+<a href="[% c.req.uri_with({ page => pager.next_page })%]">Next</a>
+<a href="[% c.req.uri_with({ page => pager.last_page }) %]">Last</a>
+ &gt;&gt;
+</p>
+
+<table id="fedora-list-packages">
+    <tr>
+        <th>Name</th>
+        <th>owner</th>
+        <th>Upstream</th>
+        [% FOREACH dist = dists %]
+        <th>[% dist %]</th>
+        [% END %]        
+        <!-- <th>Last Change Noted</th> -->
+    </tr>
+
+[% FOREACH package = packages.all %]
+
+    <tr class="[% IF loop.index % 2 %]even[% ELSE %]odd[% END %]">
+        <td><a href="[% c.uri_for("/package/show/$package.name") %]">[% package.name | html %]</a></td>
+        <td><a href="[% c.uri_for("/users/show/$package.owner_id") %]">[% package.owner_id | html %]</a></td>
+        <td>[% package.upstream_ga | html %]</td>
+        [% FOREACH id = dist_ids %] 
+        [%   version = package.dist_version(id) %]
+        <td><div class="[% version.update_class %]">[% version.current | html %]</div></td>
+        [% END %]        
+     <!--    <td>[% package.stamp       | html %]</td> -->
+    </tr>
+
+[% END %]
+
+</table>
+
+<!--- end packages --->

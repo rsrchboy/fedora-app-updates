@@ -1,8 +1,11 @@
 package Fedora::App::Updates::Controller::Root;
 
-use strict;
-use warnings;
-use parent 'Catalyst::Controller';
+#use strict;
+#use warnings;
+#use parent 'Catalyst::Controller';
+
+use Moose;
+BEGIN { extends 'Catalyst::Controller' }
 
 #
 # Sets the actions in this controller to be registered with no prefix
@@ -38,6 +41,16 @@ sub default : Path {
     $c->response->body( 'Page not found' );
     $c->response->status(404);
 }
+
+use Fedora::App::Updates::Form::Search;
+
+has search_form => (
+    is      => 'ro',
+    isa     => 'Fedora::App::Updates::Form::Search',
+    lazy    => 1,
+    clearer => 'clear_search_form',
+    default => sub { Fedora::App::Updates::Form::Search->new },
+);
 
 sub packages : Path('packages') Args(0) {
     my ($self, $c) = @_;
@@ -81,6 +94,8 @@ sub packages : Path('packages') Args(0) {
         ->all
         ;
     $c->stash->{dist_ids} = \@dist_ids;
+
+    $c->stash->{search_form} = $self->search_form;
 
     return;
 }

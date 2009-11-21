@@ -1,0 +1,8 @@
+MANIFEST.SKIP
+blib
+.*\.bak^
+.*\.old^
+\..*\.swp^
+Makefile
+Fedora-App-Updates-*
+*.orig

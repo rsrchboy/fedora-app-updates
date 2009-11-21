@@ -1,0 +1,13 @@
+blib/
+inc/
+Makefile
+Makefile.old
+.*.swp
+*_local.yml
+Fedora-App-Updates-*
+*.bak
+*.old
+*.orig
+ChangeLog
+META.yml
+*_local.yml
