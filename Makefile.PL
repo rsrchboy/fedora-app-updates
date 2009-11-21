@@ -16,11 +16,16 @@ requires 'Catalyst::Model::DBIC::Schema' => '0.31';
 requires 'Catalyst::View::TT' => '0.31';
 
 requires 'parent';
+requires 'namespace::autoclean';
+requires 'namespace::clean';
+
 requires 'Config::General'; 
+requires 'DBIx::Class' => '0.08112';
 
 catalyst;
 
 install_script glob('script/*.pl');
+
 extra_tests;
 auto_install;
 auto_provides;

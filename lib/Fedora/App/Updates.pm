@@ -18,7 +18,8 @@ use Catalyst qw/-Debug
                 StackTrace
                 ConfigLoader
                 Static::Simple/;
-our $VERSION = '0.01';
+
+our $VERSION = '0.000001';
 
 # Configure the application.
 #

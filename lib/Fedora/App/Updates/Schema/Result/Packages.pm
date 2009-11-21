@@ -89,5 +89,36 @@ __PACKAGE__->add_unique_constraint("name", ["name"]);
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:BZneemEqJx8q4zq9JXzseQ
 
 
-# You can replace this text with custom content, and it will be preserved on regeneration
+__PACKAGE__->has_many(
+  'versions',
+  'Versions',
+  { "foreign.package_id" => "self.id" },
+);
+
+__PACKAGE__->belongs_to(
+  'owner',
+  'Users',
+  { "foreign.id" => "self.owner_id" },
+);
+
+sub dist_version {
+    my ($self, $shortname) = @_;
+
+    #return $self
+    my $foo = $self
+        ->versions
+        ->find(
+        #->search(
+            #{ 'dist_id.shortname' => $shortname },
+            { dist_id => $shortname },
+            #{ join => 'dist_id'                 }
+        )
+        #->first
+
+        ;
+
+    ### $foo
+    return $foo;
+}
+
 1;

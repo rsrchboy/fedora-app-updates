@@ -55,13 +55,6 @@ has search_form => (
 sub packages : Path('packages') Args(0) {
     my ($self, $c) = @_;
 
-    my $rs = $c
-        ->model('Updates::Dist')
-        ->search(undef, { order_by => 'shortname DESC' })
-        ;
-
-    $c->stash->{dists} = $rs;
-
     # setup our packages resultset
     my $packages = $c->stash->{packages} = $c
         ->model('Updates::Packages')

@@ -11,3 +11,4 @@ Fedora-App-Updates-*
 ChangeLog
 META.yml
 *_local.yml
+root/static/dojo-1.3

@@ -97,6 +97,43 @@ __PACKAGE__->set_primary_key("dist_id", "package_id");
 # Created by DBIx::Class::Schema::Loader v0.04006 @ 2009-11-10 22:55:20
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:e/6TGiEu4s0QL9c5NRYrDA
 
+__PACKAGE__->belongs_to(
+  'dist',
+  'Dist',
+  { 'foreign.id' => 'self.dist_id' },
+);
 
-# You can replace this text with custom content, and it will be preserved on regeneration
+__PACKAGE__->belongs_to(
+  'package',
+  'Packages',
+  { 'foreign.id' => 'self.package_id' },
+);
+
+# find the latest version generally installable version
+sub current {
+    my $self = shift @_;
+
+    my $update_ver = $self->updates_version;
+    my $ga_ver     = $self->ga_version;
+
+    return $update_ver ? $update_ver : $ga_ver;
+}
+
+# determine what the td class should be for this package/version
+sub update_class {
+    my $self = shift @_;
+
+    #my $current     = $self->current;
+    #my $upstream_ga = $self->package->upstream_ga;
+    #return 'attn' if $self->current lt $self->package->upstream_ga;
+    #return 'check'
+
+    return 'error' if not defined $self->current;
+    return 'check' if not defined $self->package->upstream_ga;
+    return $self->current lt $self->package->upstream_ga
+         ? 'attn'
+         : 'check'
+         ;
+}
+
 1;
