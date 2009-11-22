@@ -69,8 +69,8 @@ dojo.addOnLoad(function() {
 [% FOREACH package = packages.all %]
 
     <tr class="[% IF loop.index % 2 %]even[% ELSE %]odd[% END %]">
-        <td><a href="[% c.uri_for("/package/show/$package.name") %]">[% package.name | html %]</a></td>
-        <td><a href="[% c.uri_for("/users/show/$package.owner_id") %]">[% package.owner_id | html %]</a></td>
+        <td><a href="[% c.uri_for("/package/$package.name") %]">[% package.name | html %]</a></td>
+        <td><a href="[% c.uri_for("/user/$package.owner_id") %]">[% package.owner_id | html %]</a></td>
         <td>[% package.upstream_ga | html %]</td>
         [% FOREACH id = dist_ids %] 
         [%   version = package.dist_version(id) %]

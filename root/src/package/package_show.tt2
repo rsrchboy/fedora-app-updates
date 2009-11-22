@@ -1,0 +1,45 @@
+[% META title = "Package Summary Detail Page" %]
+
+<h1 class="title">Package Detail: [% package.name %]</h1>
+
+<p>
+    <a class="bugz" href="[% fedora.bugzilla.url %][% package.name %]">bugzilla</a>
+  | <a class="bodhi" href="[% fedora.bodhi.url %][% package.name %]">bodhi (updates)</a>
+  | <a class="koji" href="[% fedora.koji.url %][% package.name %]">koji</a>
+  | <a class="cvs" href="[% fedora.cvs.url %][% package.name %]">cvs</a>
+  | <a class="pkgdb" href="[% fedora.pkgdb.url %][% package.name %]">Package Database</a>
+  | <a class="cpan" href="[% upstream.cpan.url %][% package.upstream_name %]">search.cpan.org</a>
+</p>
+
+<ul>
+  <li>owner: [% package.owner_id %]</li>
+  <li>Upstream Source: CPAN</li>
+  <li>Upstream Version (GA): [% package.upstream_ga %]</li>
+</ul>
+
+<table id="fedora-list-packages">
+    <tr>
+        <th>Distro</th>
+        <th>Current</th>
+        <th>Testing</th>
+        <th>Candidates</th>
+        <th>GA (Original)</th>
+    </tr>
+
+<!-- http://search.cpan.org/diff?from=Class-MOP-0.55&to=Class-MOP-0.57 -->
+
+[% FOREACH version = package.versions %]
+    <tr class="[% IF loop.index % 2 %]even[% ELSE %]odd[% END %]">
+        <td>[% version.dist.shortname     | html %]</td>
+        <td><div class="[% version.update_class %]">[% version.current | html %]</div></td>
+        <td>[% version.testing_version    | html %]</td>
+        <td>[% version.candidates_version | html %]</td>
+        <td>[% version.ga_version         | html %]</td>
+    </tr>
+[% END %]
+
+</table>
+
+
+<p><a href="[% c.uri_for('/') %]">Go home.</a></p>
+

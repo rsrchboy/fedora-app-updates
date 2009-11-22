@@ -27,6 +27,33 @@ sub index :Path :Args(0) {
     $c->response->body('Matched Fedora::App::Updates::Controller::Package in Package.');
 }
 
+=head2 get_package
+
+Private action.
+
+=cut
+
+sub get_package : Chained('/') PathPart('package') CaptureArgs(1) {
+    my ($self, $c, $name) = @_;
+
+    my $package = $c
+        ->model('Updates::Packages')
+        ->find({ name => $name })
+        ;
+
+    $c->stash->{package} = $package;
+    return;
+}
+
+=head2 package_show
+
+=cut
+
+sub package_show : Chained('get_package') PathPart('') Args(0) {
+    my ($self, $c) = @_;
+
+    # ...
+}
 
 =head1 AUTHOR
 
