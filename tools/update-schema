@@ -1,0 +1,25 @@
+#!/usr/bin/env perl
+#
+# Chris Weyl 2009 <cweyl@alumni.drew.edu>
+
+use 5.010;
+use warnings;
+use strict;
+
+use DBIx::Class::Schema::Loader qw{ make_schema_at dump_to_dir:../lib };
+
+die "Must pass userid and password!\n"
+    unless $ARGV[0] && $ARGV[1];
+
+my $host = $ARGV[2] || '172.16.42.70';
+
+make_schema_at(
+    'Fedora::App::Updates::Schema',
+    { 
+        debug          => 1, 
+        components     => [ 'InflateColumn::DateTime' ],
+        use_namespaces => 1,
+    },
+    [ "dbi:mysql:fedora;host=$host", @ARGV[0..1] ],
+);
+
