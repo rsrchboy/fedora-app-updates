@@ -10,6 +10,15 @@ __PACKAGE__->table("yum_repositories");
 __PACKAGE__->add_columns(
   "id",
   { data_type => "INT", default_value => undef, is_nullable => 0, size => 11 },
+  "collection_id",
+  { data_type => "INT", default_value => undef, is_nullable => 0, size => 11 },
+  "arch",
+  {
+    data_type => "VARCHAR",
+    default_value => undef,
+    is_nullable => 0,
+    size => 12,
+  },
   "source",
   {
     data_type => "VARCHAR",
@@ -58,8 +67,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("id");
 
 
-# Created by DBIx::Class::Schema::Loader v0.04006 @ 2009-12-31 13:39:10
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:5eYuIcz8OaTQCaygLg5H4Q
+# Created by DBIx::Class::Schema::Loader v0.04006 @ 2010-01-01 13:29:41
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:w58YXCvSw4Mi52O/taZFGA
 
 use YUM::RepoQuery;
 
