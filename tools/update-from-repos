@@ -1,0 +1,158 @@
+#!/usr/bin/env perl
+
+use 5.010;
+use strict;
+use warnings;
+
+use autodie 'system';
+use opts;
+
+# FIXME
+use FindBin;
+use lib "$ENV{HOME}/gitdir/yum-repoquery/lib";
+use lib "$FindBin::Bin/../lib";
+
+use Smart::Comments;
+use DBI;
+use YUM::RepoQuery;
+use Fedora::App::Updates::Schema;
+
+opts my $reload  => { isa => 'Bool', default => 0 };
+opts my $do_only => 'Int';
+
+my @TABLES = qw{ packages conflicts provides requires files obsoletes };
+my %TABLES = (
+    conflicts => q{T.name, T.flags, T.epoch, 'T.version', 'T.release'},
+    provides  => q{T.name, T.flags, T.epoch, 'T.version', 'T.release'},
+    requires  => q{T.name, T.flags, T.epoch, 'T.version', 'T.release', T.pre},
+    obsoletes => q{T.name, T.flags, T.epoch, 'T.version', 'T.release'},
+    files     => q{T.name, T.type},
+);
+
+my $stage_dbh = DBI->connect(
+    'dbi:mysql:stage;hostname=172.16.42.70', 
+    @ARGV[0..1],
+    { RaiseError => 1, PrintError => 1, },
+);
+
+my $fu = Fedora::App::Updates::Schema->connect(
+    'dbi:mysql:fedora;hostname=172.16.42.70',
+    @ARGV[0..1],
+);
+
+my $fu_dbh = $fu->storage->dbh;
+
+if ($reload) {
+
+    ### --reload passed, truncating rpm_* tables...
+    $fu_dbh->do("truncate rpm_$_") for ('packages', keys %TABLES);
+}
+
+my $repos;
+if ($do_only) {
+
+    $repos = $fu->resultset('YumRepositories')->search({ id => $do_only });
+}
+else {
+
+    $repos = $fu->resultset('YumRepositories')->search({ active => 1 });
+}
+
+while (my $repo = $repos->next) {
+
+    ### working on repo: $repo->name
+    my ($r, $sr) = ($repo->repo, $repo->srpm_repo);
+
+    truncate_staging_tables();
+
+    load_staging_from_repo($r);
+    load_staging_from_repo($sr) if $sr;
+
+    load_master_from_stage($repo);
+}
+
+sub truncate_staging_tables {
+
+    ### truncating staging tables...
+    $stage_dbh->do("truncate $_") for @TABLES; 
+}
+
+sub load_staging_from_repo {
+    my $r = shift @_;
+
+    my $fn = $r->primary_db_file;
+
+    for my $table (@TABLES) {
+
+        my $cmd = qq{(echo ".mode csv"; echo "select * from $table;")};
+        $cmd .= " | sqlite3 $fn > /tmp/xxx";
+
+        ### dumping from sqlite: $table
+        system $cmd;
+
+        ### loading to stage: $table
+        #system 'mysql stage < /tmp/xxx';
+        $stage_dbh->do(qq{
+            load data local infile '/tmp/xxx' ignore 
+            into table $table
+            fields terminated by ',' optionally enclosed by '"'
+        });
+
+    }
+
+    return;
+}
+
+sub load_master_from_stage {
+    my $repo = shift @_;
+
+    my $repo_id = $repo->id;
+
+### trim rpm_packages...
+$fu_dbh->do("
+    delete from rpm_packages 
+    where repo_id = $repo_id and rpmkey not in
+        (select pkgid from stage.packages)
+");
+
+### trim stage.packages to the set of new packages not in rpm_packages...
+$stage_dbh->do("
+    delete from packages 
+    where pkgid in 
+        (select rpmkey from fedora.rpm_packages where repo_id = $repo_id)
+");
+
+$stage_dbh->do("delete from $_ where pkgkey not in (select pkgkey from packages)")
+    for (keys %TABLES);
+
+### insert the new packages into rpm_packages...
+$fu_dbh->do("
+    insert into rpm_packages
+    select 
+        NULL, $repo_id,
+        pkgid, name, arch, 'version', 'epoch', 'release', 'summary',
+        description, url,
+        from_unixtime(time_file), from_unixtime(time_build), 
+        rpm_license, rpm_vendor, rpm_group,
+        rpm_buildhost, rpm_sourcerpm, rpm_header_start, rpm_header_end,
+        rpm_packager, size_package, size_installed, size_archive,
+        location_href, location_base, checksum_type
+    from stage.packages
+");
+
+for my $table (keys %TABLES) {
+    
+    my $cols = $TABLES{$table};
+
+    ### updating: $table
+    $fu_dbh->do("
+        insert into rpm_$table 
+        select null, PKGID($repo_id, P.pkgid), $cols
+        from stage.$table as T inner join stage.packages as P
+            on T.pkgkey = P.pkgkey
+    ");
+}
+
+}
+
+### fini...
