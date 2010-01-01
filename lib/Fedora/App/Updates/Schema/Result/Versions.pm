@@ -94,8 +94,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("dist_id", "package_id");
 
 
-# Created by DBIx::Class::Schema::Loader v0.04006 @ 2009-12-28 15:58:39
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:2DF2eMf3ltDBcFenY1In+A
+# Created by DBIx::Class::Schema::Loader v0.04006 @ 2009-12-31 13:39:10
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:5FzjrLxXKoHPseYl1aCDsQ
 
 __PACKAGE__->belongs_to(
   'dist',

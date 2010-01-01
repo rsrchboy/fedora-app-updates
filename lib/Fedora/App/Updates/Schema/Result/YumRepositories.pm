@@ -38,8 +38,15 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
     size => 255,
   },
+  "srpm_url",
+  {
+    data_type => "VARCHAR",
+    default_value => undef,
+    is_nullable => 1,
+    size => 255,
+  },
   "active",
-  { data_type => "TINYINT", default_value => undef, is_nullable => 0, size => 1 },
+  { data_type => "TINYINT", default_value => 1, is_nullable => 0, size => 1 },
   "stamp",
   {
     data_type => "TIMESTAMP",
@@ -51,9 +58,28 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("id");
 
 
-# Created by DBIx::Class::Schema::Loader v0.04006 @ 2009-12-28 15:58:39
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:xLw+y1/UXUWHABhvOBMyZQ
+# Created by DBIx::Class::Schema::Loader v0.04006 @ 2009-12-31 13:39:10
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:5eYuIcz8OaTQCaygLg5H4Q
 
+use YUM::RepoQuery;
 
-# You can replace this text with custom content, and it will be preserved on regeneration
+sub repo {
+    my $self = shift @_;
+
+    my $repo_id = $self->id;
+    return YUM::RepoQuery->new(id => "repo-$repo_id-rpms", uri => $self->url);
+}
+
+sub srpm_repo {
+    my $self = shift @_;
+
+    return unless $self->srpm_url;
+
+    my $repo_id = $self->id;
+    return YUM::RepoQuery->new(
+        id  => "repo-$repo_id-srpms", 
+        uri => $self->srpm_url,
+    );
+}
+
 1;

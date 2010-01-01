@@ -1,4 +1,4 @@
-package Fedora::App::Updates::Schema::Result::Dist;
+package Fedora::App::Updates::Schema::Result::RpmRequires;
 
 use strict;
 use warnings;
@@ -6,69 +6,55 @@ use warnings;
 use base 'DBIx::Class';
 
 __PACKAGE__->load_components("InflateColumn::DateTime", "Core");
-__PACKAGE__->table("dist");
+__PACKAGE__->table("rpm_requires");
 __PACKAGE__->add_columns(
   "id",
+  { data_type => "INT", default_value => undef, is_nullable => 0, size => 11 },
+  "rpm_package_id",
   { data_type => "INT", default_value => undef, is_nullable => 0, size => 11 },
   "name",
   {
     data_type => "VARCHAR",
     default_value => undef,
-    is_nullable => 0,
-    size => 64,
+    is_nullable => 1,
+    size => 255,
   },
-  "shortname",
-  { data_type => "VARCHAR", default_value => undef, is_nullable => 0, size => 8 },
-  "ga_tag",
-  {
-    data_type => "VARCHAR",
-    default_value => undef,
-    is_nullable => 0,
-    size => 128,
-  },
-  "updates_tag",
+  "flags",
   {
     data_type => "VARCHAR",
     default_value => undef,
     is_nullable => 1,
-    size => 128,
+    size => 255,
   },
-  "testing_tag",
+  "epoch",
   {
     data_type => "VARCHAR",
     default_value => undef,
     is_nullable => 1,
-    size => 128,
+    size => 255,
   },
-  "candidates_tag",
+  "version",
   {
     data_type => "VARCHAR",
     default_value => undef,
     is_nullable => 1,
-    size => 128,
+    size => 255,
   },
-  "stamp",
+  "release",
   {
-    data_type => "TIMESTAMP",
-    default_value => "CURRENT_TIMESTAMP",
-    is_nullable => 0,
-    size => 14,
-  },
-  "extra",
-  {
-    data_type => "TEXT",
+    data_type => "VARCHAR",
     default_value => undef,
     is_nullable => 1,
-    size => 65535,
+    size => 255,
   },
+  "pre",
+  { data_type => "ENUM", default_value => undef, is_nullable => 1, size => 1 },
 );
 __PACKAGE__->set_primary_key("id");
-__PACKAGE__->add_unique_constraint("shortname", ["shortname"]);
-__PACKAGE__->add_unique_constraint("name", ["name"]);
 
 
 # Created by DBIx::Class::Schema::Loader v0.04006 @ 2009-12-31 13:39:10
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:pxjAG13kU7+sEsB/W+Je1g
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Z5QMBxLd9K5HeXjlC9Areg
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
