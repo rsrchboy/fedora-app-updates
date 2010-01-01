@@ -17,8 +17,9 @@ use DBI;
 use YUM::RepoQuery;
 use Fedora::App::Updates::Schema;
 
-opts my $reload  => { isa => 'Bool', default => 0 };
-opts my $do_only => 'Int';
+opts my $reload  => { isa => 'Bool', default => 0 },
+     my $do_only => 'Int',
+     ;
 
 my @TABLES = qw{ packages conflicts provides requires files obsoletes };
 my %TABLES = (
@@ -29,8 +30,18 @@ my %TABLES = (
     files     => q{T.name, T.type},
 );
 
+my %OTABLES = (
+    changelog => 'T.author, from_unixtime(T.date), T.changelog',
+);
+
+my %FTABLES = (
+    filelist => 'T.dirname, T.filenames, T.filetypes',
+);
+
+#my @ALL_STAGE_TABLES = (@TABLES, keys %OTABLES, keys %FTABLES);
+
 my $stage_dbh = DBI->connect(
-    'dbi:mysql:stage;hostname=172.16.42.70', 
+    'dbi:mysql:stage;hostname=172.16.42.70',
     @ARGV[0..1],
     { RaiseError => 1, PrintError => 1, },
 );
@@ -74,15 +85,28 @@ while (my $repo = $repos->next) {
 sub truncate_staging_tables {
 
     ### truncating staging tables...
-    $stage_dbh->do("truncate $_") for @TABLES; 
+    $stage_dbh->do("truncate $_") for (@TABLES, keys %OTABLES, keys %FTABLES);
 }
 
 sub load_staging_from_repo {
     my $r = shift @_;
 
     my $fn = $r->primary_db_file;
+    load_table_to_staging($fn, $_) for (@TABLES);
 
-    for my $table (@TABLES) {
+    $fn = $r->other_db_file;
+    load_table_to_staging($fn, $_) for (keys %OTABLES);
+
+    $fn = $r->filelists_db_file;
+    load_table_to_staging($fn, $_) for (keys %FTABLES);
+
+    return;
+}
+
+sub load_table_to_staging {
+    my ($fn, $table) = @_;
+
+    #for my $table (@TABLES) {
 
         my $cmd = qq{(echo ".mode csv"; echo "select * from $table;")};
         $cmd .= " | sqlite3 $fn > /tmp/xxx";
@@ -93,12 +117,12 @@ sub load_staging_from_repo {
         ### loading to stage: $table
         #system 'mysql stage < /tmp/xxx';
         $stage_dbh->do(qq{
-            load data local infile '/tmp/xxx' ignore 
+            load data local infile '/tmp/xxx' ignore
             into table $table
             fields terminated by ',' optionally enclosed by '"'
         });
 
-    }
+    #}
 
     return;
 }
@@ -110,15 +134,15 @@ sub load_master_from_stage {
 
 ### trim rpm_packages...
 $fu_dbh->do("
-    delete from rpm_packages 
+    delete from rpm_packages
     where repo_id = $repo_id and rpmkey not in
         (select pkgid from stage.packages)
 ");
 
 ### trim stage.packages to the set of new packages not in rpm_packages...
 $stage_dbh->do("
-    delete from packages 
-    where pkgid in 
+    delete from packages
+    where pkgid in
         (select rpmkey from fedora.rpm_packages where repo_id = $repo_id)
 ");
 
@@ -128,11 +152,11 @@ $stage_dbh->do("delete from $_ where pkgkey not in (select pkgkey from packages)
 ### insert the new packages into rpm_packages...
 $fu_dbh->do("
     insert into rpm_packages
-    select 
+    select
         NULL, $repo_id,
         pkgid, name, arch, 'version', 'epoch', 'release', 'summary',
         description, url,
-        from_unixtime(time_file), from_unixtime(time_build), 
+        from_unixtime(time_file), from_unixtime(time_build),
         rpm_license, rpm_vendor, rpm_group,
         rpm_buildhost, rpm_sourcerpm, rpm_header_start, rpm_header_end,
         rpm_packager, size_package, size_installed, size_archive,
@@ -140,19 +164,21 @@ $fu_dbh->do("
     from stage.packages
 ");
 
-for my $table (keys %TABLES) {
-    
-    my $cols = $TABLES{$table};
+    my %STAGE_TABLES = (%TABLES, %OTABLES, %FTABLES);
+    for my $table (keys %STAGE_TABLES) {
 
-    ### updating: $table
-    $fu_dbh->do("
-        insert into rpm_$table 
-        select null, PKGID($repo_id, P.pkgid), $cols
-        from stage.$table as T inner join stage.packages as P
-            on T.pkgkey = P.pkgkey
-    ");
-}
+        my $cols = $STAGE_TABLES{$table};
 
+        ### updating: $table
+        $fu_dbh->do("
+            insert into rpm_$table
+            select null, PKGID($repo_id, P.pkgid), $cols
+            from stage.$table as T inner join stage.packages as P
+                on T.pkgkey = P.pkgkey
+        ");
+    }
+
+    return;
 }
 
 ### fini...
