@@ -21,6 +21,7 @@ requires 'namespace::clean';
 
 requires 'Config::General'; 
 requires 'DBIx::Class' => '0.08112';
+requires 'YUM::RepoQuery';
 
 catalyst;
 
