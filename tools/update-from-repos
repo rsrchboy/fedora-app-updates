@@ -12,10 +12,14 @@ use FindBin;
 use lib "$ENV{HOME}/gitdir/yum-repoquery/lib";
 use lib "$FindBin::Bin/../lib";
 
-use Smart::Comments;
 use DBI;
+use Scope::Guard;
 use YUM::RepoQuery;
+#use TryCatch;
 use Fedora::App::Updates::Schema;
+
+# debugging...
+use Smart::Comments;
 
 opts my $reload  => { isa => 'Bool', default => 0 },
      my $do_only => 'Int',
@@ -38,7 +42,8 @@ my %FTABLES = (
     filelist => 'T.dirname, T.filenames, T.filetypes',
 );
 
-#my @ALL_STAGE_TABLES = (@TABLES, keys %OTABLES, keys %FTABLES);
+# all staging tables sans 'packages'
+my %STAGE_TABLES = (%TABLES, %OTABLES, %FTABLES);
 
 my $stage_dbh = DBI->connect(
     'dbi:mysql:stage;hostname=172.16.42.70',
@@ -69,6 +74,7 @@ else {
     $repos = $fu->resultset('YumRepositories')->search({ active => 1 });
 }
 
+MAIN_LOOP:
 while (my $repo = $repos->next) {
 
     ### working on repo: $repo->name
@@ -85,14 +91,14 @@ while (my $repo = $repos->next) {
 sub truncate_staging_tables {
 
     ### truncating staging tables...
-    $stage_dbh->do("truncate $_") for (@TABLES, keys %OTABLES, keys %FTABLES);
+    $stage_dbh->do("truncate $_") for ('packages', keys %STAGE_TABLES);
 }
 
 sub load_staging_from_repo {
     my $r = shift @_;
 
     my $fn = $r->primary_db_file;
-    load_table_to_staging($fn, $_) for (@TABLES);
+    load_table_to_staging($fn, $_) for ('packages', keys %TABLES);
 
     $fn = $r->other_db_file;
     load_table_to_staging($fn, $_) for (keys %OTABLES);
@@ -106,23 +112,20 @@ sub load_staging_from_repo {
 sub load_table_to_staging {
     my ($fn, $table) = @_;
 
-    #for my $table (@TABLES) {
+    my $cmd = qq{(echo ".mode csv"; echo "select * from $table;")};
+    $cmd .= " | sqlite3 $fn > /tmp/xxx";
 
-        my $cmd = qq{(echo ".mode csv"; echo "select * from $table;")};
-        $cmd .= " | sqlite3 $fn > /tmp/xxx";
+    ### dumping from sqlite: $table
+    system $cmd;
 
-        ### dumping from sqlite: $table
-        system $cmd;
+    my $sg = _disable_keys("stage.$table");
 
-        ### loading to stage: $table
-        #system 'mysql stage < /tmp/xxx';
-        $stage_dbh->do(qq{
-            load data local infile '/tmp/xxx' ignore
-            into table $table
-            fields terminated by ',' optionally enclosed by '"'
-        });
-
-    #}
+    ### loading to stage: $table
+    $stage_dbh->do(qq{
+        load data local infile '/tmp/xxx' ignore
+        into table $table
+        fields terminated by ',' optionally enclosed by '"'
+    });
 
     return;
 }
@@ -132,37 +135,37 @@ sub load_master_from_stage {
 
     my $repo_id = $repo->id;
 
-### trim rpm_packages...
-$fu_dbh->do("
-    delete from rpm_packages
-    where repo_id = $repo_id and rpmkey not in
-        (select pkgid from stage.packages)
-");
+    ### trim rpm_packages...
+    $fu_dbh->do("
+        delete from rpm_packages
+        where repo_id = $repo_id and rpmkey not in
+            (select pkgid from stage.packages)
+    ");
 
-### trim stage.packages to the set of new packages not in rpm_packages...
-$stage_dbh->do("
-    delete from packages
-    where pkgid in
-        (select rpmkey from fedora.rpm_packages where repo_id = $repo_id)
-");
+    ### trim stage.packages to the set of new packages not in rpm_packages...
+    $stage_dbh->do("
+        delete from packages
+        where pkgid in
+            (select rpmkey from fedora.rpm_packages where repo_id = $repo_id)
+    ");
 
-$stage_dbh->do("delete from $_ where pkgkey not in (select pkgkey from packages)")
-    for (keys %TABLES);
+    $stage_dbh->do("delete from $_ where pkgkey not in (select pkgkey from packages)")
+        for (keys %STAGE_TABLES);
 
-### insert the new packages into rpm_packages...
-$fu_dbh->do("
-    insert into rpm_packages
-    select
-        NULL, $repo_id,
-        pkgid, name, arch, 'version', 'epoch', 'release', 'summary',
-        description, url,
-        from_unixtime(time_file), from_unixtime(time_build),
-        rpm_license, rpm_vendor, rpm_group,
-        rpm_buildhost, rpm_sourcerpm, rpm_header_start, rpm_header_end,
-        rpm_packager, size_package, size_installed, size_archive,
-        location_href, location_base, checksum_type
-    from stage.packages
-");
+    ### insert the new packages into rpm_packages...
+    $fu_dbh->do("
+        insert into rpm_packages
+        select
+            NULL, $repo_id,
+            pkgid, name, arch, 'version', 'epoch', 'release', 'summary',
+            description, url,
+            from_unixtime(time_file), from_unixtime(time_build),
+            rpm_license, rpm_vendor, rpm_group,
+            rpm_buildhost, rpm_sourcerpm, rpm_header_start, rpm_header_end,
+            rpm_packager, size_package, size_installed, size_archive,
+            location_href, location_base, checksum_type
+        from stage.packages
+    ");
 
     my %STAGE_TABLES = (%TABLES, %OTABLES, %FTABLES);
     for my $table (keys %STAGE_TABLES) {
@@ -181,4 +184,38 @@ $fu_dbh->do("
     return;
 }
 
+#sub _disable_keys{ $fu_dbh->do("ALTER TABLE $table DISABLE KEYS") }
+#sub _enable_keys  { $fu_dbh->do("ALTER TABLE $table ENABLE KEYS")  }
+
+sub _disable_keys {
+    my $table = shift @_;
+
+    $fu_dbh->do("ALTER TABLE $table DISABLE KEYS");
+    return Scope::Guard->new(
+        sub { $fu_dbh->do("ALTER TABLE $table ENABLE KEYS") }
+    );
+}
+
+sub load_master_table_from_stage {
+    my ($repo_id, $table) = @_;
+
+    # disable keys, and set up a Scope::Guard object to handle reenabling
+    # them, even if we bail for some reason
+    my $sg = _disable_keys("stage.$table");
+    #my $sg = Scope::Guard->new(sub { _enable_keys("stage.$table") });
+
+    my $cols = $STAGE_TABLES{$table};
+
+    ### updating: $table
+    $fu_dbh->do("
+        insert into fedora.rpm_$table
+        select null, PKGID($repo_id, P.pkgid), $cols
+        from stage.$table as T inner join stage.packages as P
+            on T.pkgkey = P.pkgkey
+    ");
+    
+    return;
+}
+
 ### fini...
+
