@@ -65,8 +65,9 @@ my $fu_dbh = $fu->storage->dbh;
 
 if ($reload) {
 
-    ### --reload passed, truncating rpm_* tables...
-    $fu_dbh->do("truncate rpm_$_") for ('packages', keys %TABLES);
+    ### --reload passed, truncating logs, rpm_* tables...
+    $fu_dbh->do("truncate rpm_$_") for ('packages', keys %STAGE_TABLES);
+    $fu_dbh->do("truncate yum_repos_log");
 }
 
 my $repos;
@@ -101,6 +102,30 @@ while (my $repo = $repos->next) {
 
     ### working on repo: $repo->name
     my ($r, $sr) = ($repo->repo, $repo->srpm_repo);
+    my $repo_ts = $r->mdinfo_primary->{timestamp};
+
+    if ($repo->last_update_unixtime < $repo_ts) {
+
+        pull_and_load_yum_repo($repo, $r, $sr);
+
+        $repo->create_related(logs => {
+            repo_unixtime => $repo_ts,
+            repo_date     => \"FROM_UNIXTIME($repo_ts)",
+            status        => 'SUCCESS',
+        });
+    }
+    else {
+
+        ### repo is up to date, skipping...
+        $repo->create_related(logs => { status => 'UPTODATE' });
+    }
+}
+
+sub pull_and_load_yum_repo {
+    my ($repo, $r, $sr) = @_;
+
+    ### working on repo: $repo->name
+    #my ($r, $sr) = ($repo->repo, $repo->srpm_repo);
 
     truncate_staging_tables();
 
@@ -179,7 +204,7 @@ sub load_master_from_stage {
         insert into rpm_packages
         select
             NULL, $repo_id,
-            pkgid, name, arch, 'version', 'epoch', 'release', 'summary',
+            pkgid, name, arch, `version`, `epoch`, `release`, `summary`,
             description, url,
             from_unixtime(time_file), from_unixtime(time_build),
             rpm_license, rpm_vendor, rpm_group,
