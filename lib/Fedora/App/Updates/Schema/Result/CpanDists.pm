@@ -1,4 +1,4 @@
-package Fedora::App::Updates::Schema::Result::RpmProvides;
+package Fedora::App::Updates::Schema::Result::CpanDists;
 
 use strict;
 use warnings;
@@ -6,53 +6,48 @@ use warnings;
 use base 'DBIx::Class';
 
 __PACKAGE__->load_components("InflateColumn::DateTime", "Core");
-__PACKAGE__->table("rpm_provides");
+__PACKAGE__->table("cpan_dists");
 __PACKAGE__->add_columns(
-  "id",
+  "dist_id",
   { data_type => "INT", default_value => undef, is_nullable => 0, size => 11 },
-  "rpm_package_id",
+  "dist_vers",
+  {
+    data_type => "VARCHAR",
+    default_value => undef,
+    is_nullable => 1,
+    size => 20,
+  },
+  "dist_dslip",
+  { data_type => "VARCHAR", default_value => undef, is_nullable => 1, size => 5 },
+  "dist_name",
+  {
+    data_type => "VARCHAR",
+    default_value => undef,
+    is_nullable => 0,
+    size => 90,
+  },
+  "auth_id",
   { data_type => "INT", default_value => undef, is_nullable => 0, size => 11 },
-  "name",
+  "dist_abs",
   {
-    data_type => "VARCHAR",
+    data_type => "TEXT",
     default_value => undef,
     is_nullable => 1,
-    size => 255,
+    size => 65535,
   },
-  "flags",
+  "dist_file",
   {
     data_type => "VARCHAR",
     default_value => undef,
-    is_nullable => 1,
-    size => 255,
-  },
-  "epoch",
-  {
-    data_type => "VARCHAR",
-    default_value => undef,
-    is_nullable => 1,
-    size => 255,
-  },
-  "version",
-  {
-    data_type => "VARCHAR",
-    default_value => undef,
-    is_nullable => 1,
-    size => 255,
-  },
-  "release",
-  {
-    data_type => "VARCHAR",
-    default_value => undef,
-    is_nullable => 1,
-    size => 255,
+    is_nullable => 0,
+    size => 110,
   },
 );
-__PACKAGE__->set_primary_key("id");
+__PACKAGE__->set_primary_key("dist_id");
 
 
 # Created by DBIx::Class::Schema::Loader v0.04006 @ 2010-01-03 17:46:23
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:7aYRSYRQG9g7Vw+FbAhTDA
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qZO/WXyQrGyZ+dxmer7Tjg
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

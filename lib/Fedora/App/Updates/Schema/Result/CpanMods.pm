@@ -1,4 +1,4 @@
-package Fedora::App::Updates::Schema::Result::Collections;
+package Fedora::App::Updates::Schema::Result::CpanMods;
 
 use strict;
 use warnings;
@@ -6,48 +6,43 @@ use warnings;
 use base 'DBIx::Class';
 
 __PACKAGE__->load_components("InflateColumn::DateTime", "Core");
-__PACKAGE__->table("collections");
+__PACKAGE__->table("cpan_mods");
 __PACKAGE__->add_columns(
-  "id",
+  "mod_id",
   { data_type => "INT", default_value => undef, is_nullable => 0, size => 11 },
-  "name",
+  "chapterid",
+  { data_type => "INT", default_value => undef, is_nullable => 1, size => 11 },
+  "dslip",
+  { data_type => "VARCHAR", default_value => undef, is_nullable => 1, size => 5 },
+  "mod_vers",
   {
     data_type => "VARCHAR",
     default_value => undef,
-    is_nullable => 0,
-    size => 128,
+    is_nullable => 1,
+    size => 10,
   },
-  "active",
-  { data_type => "TINYINT", default_value => 1, is_nullable => 0, size => 1 },
-  "description",
+  "dist_id",
+  { data_type => "INT", default_value => undef, is_nullable => 0, size => 11 },
+  "mod_abs",
   {
     data_type => "TEXT",
     default_value => undef,
     is_nullable => 1,
     size => 65535,
   },
-  "url",
+  "mod_name",
   {
     data_type => "VARCHAR",
     default_value => undef,
-    is_nullable => 1,
-    size => 255,
-  },
-  "parent_id",
-  { data_type => "INT", default_value => undef, is_nullable => 1, size => 11 },
-  "stamp",
-  {
-    data_type => "TIMESTAMP",
-    default_value => "CURRENT_TIMESTAMP",
     is_nullable => 0,
-    size => 14,
+    size => 100,
   },
 );
-__PACKAGE__->set_primary_key("id");
+__PACKAGE__->set_primary_key("mod_id");
 
 
 # Created by DBIx::Class::Schema::Loader v0.04006 @ 2010-01-03 17:46:23
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:aUbOcCq2autz8LE5J94Ojg
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:yflZY/vl/4X/aldPGEOw+g
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

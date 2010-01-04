@@ -67,8 +67,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("id");
 
 
-# Created by DBIx::Class::Schema::Loader v0.04006 @ 2010-01-01 13:29:41
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:w58YXCvSw4Mi52O/taZFGA
+# Created by DBIx::Class::Schema::Loader v0.04006 @ 2010-01-03 17:46:23
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:V7ZzJoINrv7/r8TThYCAUg
 
 use YUM::RepoQuery;
 
