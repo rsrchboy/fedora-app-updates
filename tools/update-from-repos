@@ -13,6 +13,8 @@ use lib "$ENV{HOME}/gitdir/yum-repoquery/lib";
 use lib "$FindBin::Bin/../lib";
 
 use DBI;
+use File::Temp 'tempfile';
+use Path::Class;
 use Scope::Guard;
 use YUM::RepoQuery;
 #use TryCatch;
@@ -23,7 +25,10 @@ use Smart::Comments;
 
 opts my $reload  => { isa => 'Bool', default => 0 },
      my $do_only => 'Int',
+     my $do_cpan => { isa => 'Bool', default => 0 },
      ;
+
+my ($TMPFH, $TMPFILE) = tempfile;
 
 my @TABLES = qw{ packages conflicts provides requires files obsoletes };
 my %TABLES = (
@@ -74,6 +79,23 @@ else {
     $repos = $fu->resultset('YumRepositories')->search({ active => 1 });
 }
 
+### temp load file is: $TMPFILE
+
+if ($do_cpan) {
+
+    ### doing cpan...
+
+    # FIXME bits to update the cpan sqlite db...
+    my $fn = file 'cpandb.sql';
+    #load_table_to_staging($fn, $_) for (qw{ auths chaps dists mods });
+
+    ### copying cpan tables to master...
+    $fu_dbh->do("insert into cpan_$_ select * from stage.$_")
+        for (qw{ auths chaps dists mods });
+
+    exit;
+}
+
 MAIN_LOOP:
 while (my $repo = $repos->next) {
 
@@ -113,7 +135,7 @@ sub load_table_to_staging {
     my ($fn, $table) = @_;
 
     my $cmd = qq{(echo ".mode csv"; echo "select * from $table;")};
-    $cmd .= " | sqlite3 $fn > /tmp/xxx";
+    $cmd .= " | sqlite3 $fn > $TMPFILE";
 
     ### dumping from sqlite: $table
     system $cmd;
@@ -122,7 +144,7 @@ sub load_table_to_staging {
 
     ### loading to stage: $table
     $stage_dbh->do(qq{
-        load data local infile '/tmp/xxx' ignore
+        load data local infile '$TMPFILE' ignore
         into table $table
         fields terminated by ',' optionally enclosed by '"'
     });
@@ -213,7 +235,7 @@ sub load_master_table_from_stage {
         from stage.$table as T inner join stage.packages as P
             on T.pkgkey = P.pkgkey
     ");
-    
+
     return;
 }
 
