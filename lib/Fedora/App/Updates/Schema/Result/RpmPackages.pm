@@ -169,6 +169,55 @@ __PACKAGE__->set_primary_key("id");
 # Created by DBIx::Class::Schema::Loader v0.04006 @ 2010-01-03 17:46:23
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:WqJtCzaLezBeu2waFq8uJw
 
+######################################################################
+# relationships
 
-# You can replace this text with custom content, and it will be preserved on regeneration
+__PACKAGE__->has_many(
+    'rpm_changelog',
+    'RpmChangelog',
+    { 'foreign.rpm_package_id' => 'self.id' },
+);
+
+__PACKAGE__->has_many(
+    'rpm_conflicts',
+    'Rpm',
+    { 'foreign.rpm_package_id' => 'self.id' },
+);
+
+__PACKAGE__->has_many(
+    'rpm_filelist',
+    'RpmFilelist',
+    { 'foreign.rpm_package_id' => 'self.id' },
+);
+
+__PACKAGE__->has_many(
+    'rpm_files',
+    'RpmFiles',
+    { 'foreign.rpm_package_id' => 'self.id' },
+);
+
+__PACKAGE__->has_many(
+    'rpm_obsoletes',
+    'RpmObsoletes',
+    { 'foreign.rpm_package_id' => 'self.id' },
+);
+
+__PACKAGE__->has_many(
+    'rpm_provides',
+    'RpmProvides',
+    { 'foreign.rpm_package_id' => 'self.id' },
+);
+
+__PACKAGE__->has_many(
+    'rpm_requires',
+    'RpmRequires',
+    { 'foreign.rpm_package_id' => 'self.id' },
+);
+
+__PACKAGE__->belongs_to(
+    'repo',
+    'YumRepositores',
+    { 'foreign.id' => 'self.repo_id' },
+);
+
 1;

@@ -49,6 +49,13 @@ __PACKAGE__->set_primary_key("dist_id");
 # Created by DBIx::Class::Schema::Loader v0.04006 @ 2010-01-03 17:46:23
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qZO/WXyQrGyZ+dxmer7Tjg
 
+######################################################################
+# relationships
 
-# You can replace this text with custom content, and it will be preserved on regeneration
+__PACKAGE__->belongs_to(
+    'author',
+    'CpanAuths',
+    { 'foreign.id' => 'self.auth_id' },
+);
+
 1;

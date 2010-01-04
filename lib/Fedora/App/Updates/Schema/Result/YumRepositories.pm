@@ -72,6 +72,35 @@ __PACKAGE__->set_primary_key("id");
 
 use YUM::RepoQuery;
 
+######################################################################
+# relationships
+
+__PACKAGE__->has_many(
+    'logs',
+    'YumReposLog',
+    { 'foreign.repo_id' => 'self.id' },
+);
+
+__PACKAGE__->belongs_to(
+    'collection',
+    'Collection',
+    { 'foreign.id' => 'self.collection_id' },
+);
+
+######################################################################
+# row methods
+
+sub last_update_unixtime {
+    my $self = shift @_;
+
+    my $rs = $self
+        ->search_related(logs => { status => 'SUCCESS' })
+        ->get_column('repo_unixtime')
+        ->max
+        || 0
+        ;
+}
+
 sub repo {
     my $self = shift @_;
 
