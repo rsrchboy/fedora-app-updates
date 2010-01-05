@@ -41,8 +41,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("mod_id");
 
 
-# Created by DBIx::Class::Schema::Loader v0.04006 @ 2010-01-03 17:46:23
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:yflZY/vl/4X/aldPGEOw+g
+# Created by DBIx::Class::Schema::Loader v0.04006 @ 2010-01-04 21:06:11
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qEBi1JT016+F6EYwU8sFJA
 
 ######################################################################
 # relationships

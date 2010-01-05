@@ -21,6 +21,20 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
     size => 19,
   },
+  "start_time",
+  {
+    data_type => "DATETIME",
+    default_value => undef,
+    is_nullable => 1,
+    size => 19,
+  },
+  "stop_time",
+  {
+    data_type => "DATETIME",
+    default_value => undef,
+    is_nullable => 1,
+    size => 19,
+  },
   "status",
   { data_type => "ENUM", default_value => undef, is_nullable => 0, size => 8 },
   "message",
@@ -41,8 +55,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("id");
 
 
-# Created by DBIx::Class::Schema::Loader v0.04006 @ 2010-01-03 17:46:23
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:CZ4LHWCQcGDBoRqtrO0GRA
+# Created by DBIx::Class::Schema::Loader v0.04006 @ 2010-01-04 21:06:11
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:4Tq4i2Ysk/Sjk8lf8rrZAQ
 
 ######################################################################
 # relationships

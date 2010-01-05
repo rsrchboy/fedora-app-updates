@@ -85,8 +85,8 @@ __PACKAGE__->set_primary_key("id");
 __PACKAGE__->add_unique_constraint("name", ["name"]);
 
 
-# Created by DBIx::Class::Schema::Loader v0.04006 @ 2010-01-03 17:46:23
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:2KsD9yPBVTRSc2qb0KJGJA
+# Created by DBIx::Class::Schema::Loader v0.04006 @ 2010-01-04 21:06:11
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:mYtQm5CPgqhexcvxP2JhxQ
 
 
 __PACKAGE__->has_many(

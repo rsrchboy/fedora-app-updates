@@ -166,8 +166,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("id");
 
 
-# Created by DBIx::Class::Schema::Loader v0.04006 @ 2010-01-03 17:46:23
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:WqJtCzaLezBeu2waFq8uJw
+# Created by DBIx::Class::Schema::Loader v0.04006 @ 2010-01-04 21:06:11
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:vZqcezVrulvgdgEU0sSz/Q
 
 ######################################################################
 # relationships
