@@ -12,12 +12,14 @@ use FindBin;
 use lib "$ENV{HOME}/gitdir/yum-repoquery/lib";
 use lib "$FindBin::Bin/../lib";
 
+use DateTime;
 use DBI;
 use File::Temp 'tempfile';
 use Path::Class;
 use Scope::Guard;
 use YUM::RepoQuery;
 #use TryCatch;
+use Try::Tiny;
 use Fedora::App::Updates::Schema;
 
 # debugging...
@@ -97,20 +99,34 @@ if ($do_cpan) {
     exit;
 }
 
+my $try = 0;
+
 MAIN_LOOP:
 while (my $repo = $repos->next) {
 
     ### working on repo: $repo->name
+    my $start = DateTime->now;
     my ($r, $sr) = ($repo->repo, $repo->srpm_repo);
     my $repo_ts = $r->mdinfo_primary->{timestamp};
 
     if ($repo->last_update_unixtime < $repo_ts) {
 
-        pull_and_load_yum_repo($repo, $r, $sr);
+        try {
+            pull_and_load_yum_repo($repo, $r, $sr);
+        }
+        catch {
+
+            warn "Error: $_";
+
+            do { warn "Retrying...\n"; redo MAIN_LOOP } if $try++ < 3;
+            die;
+        };
 
         $repo->create_related(logs => {
             repo_unixtime => $repo_ts,
             repo_date     => \"FROM_UNIXTIME($repo_ts)",
+            start_time    => $start,
+            stop_time     => \'NOW()',
             status        => 'SUCCESS',
         });
     }
@@ -120,6 +136,10 @@ while (my $repo = $repos->next) {
         $repo->create_related(logs => { status => 'UPTODATE' });
     }
 }
+
+# FIXME cleanups...
+# unlink $TMPFILE;
+
 
 sub pull_and_load_yum_repo {
     my ($repo, $r, $sr) = @_;
@@ -138,7 +158,8 @@ sub pull_and_load_yum_repo {
 sub truncate_staging_tables {
 
     ### truncating staging tables...
-    $stage_dbh->do("truncate $_") for ('packages', keys %STAGE_TABLES);
+    $stage_dbh->do("truncate $_")
+        for ('packages', 'rpmkeys', keys %STAGE_TABLES);
 }
 
 sub load_staging_from_repo {
@@ -183,20 +204,32 @@ sub load_master_from_stage {
     my $repo_id = $repo->id;
 
     ### trim rpm_packages...
+    # I'm told this is faster under mysql than a simple subquery...
+    $stage_dbh->do("insert into rpmkeys select pkgid from packages");
     $fu_dbh->do("
         delete from rpm_packages
-        where repo_id = $repo_id and rpmkey not in
-            (select pkgid from stage.packages)
+        where repo_id = $repo_id and not exists
+            (select 1 from stage.rpmkeys where `key` = rpmkey)
     ");
 
     ### trim stage.packages to the set of new packages not in rpm_packages...
     $stage_dbh->do("
-        delete from packages
-        where pkgid in
-            (select rpmkey from fedora.rpm_packages where repo_id = $repo_id)
+        insert into rpmids
+        select pkgkey from packages as p
+            inner join fedora.rpm_packages as rp
+            on p.pkgid = rp.rpmkey
+        where rp.repo_id = $repo_id
     ");
 
-    $stage_dbh->do("delete from $_ where pkgkey not in (select pkgkey from packages)")
+    $stage_dbh->do("
+        delete quick from packages
+        where exists
+            (select 1 from rpmids where id = packages.pkgkey)
+    ");
+        #where pkgid in (select `key` from rpmkeys)
+
+    #$stage_dbh->do("delete from $_ where pkgkey not in (select pkgkey from packages)")
+    $stage_dbh->do("delete quick from $_ where exists (select 1 from rpmids where id = $_.pkgkey)")
         for (keys %STAGE_TABLES);
 
     ### insert the new packages into rpm_packages...
