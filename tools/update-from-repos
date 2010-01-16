@@ -25,10 +25,11 @@ use Fedora::App::Updates::Schema;
 # debugging...
 use Smart::Comments;
 
-opts my $reload  => { isa => 'Bool', default => 0 },
-     my $do_only => 'Int',
-     my $do_cpan => { isa => 'Bool', default => 0 },
-     ;
+opts
+    my $reload  => { isa => 'Bool', default => 0, alias => 'redo'         },
+    my $do_only => { isa => 'Int',  default => 0, alias => 'do-only|only' },
+    my $do_cpan => { isa => 'Bool', default => 0, }, # FIXME tmp anyways
+    ;
 
 my ($TMPFH, $TMPFILE) = tempfile;
 
@@ -48,6 +49,8 @@ my %OTABLES = (
 my %FTABLES = (
     filelist => 'T.dirname, T.filenames, T.filetypes',
 );
+
+my @AUX_TABLES = qw{ packages rpmids rpmkeys id_to_id };
 
 # all staging tables sans 'packages'
 my %STAGE_TABLES = (%TABLES, %OTABLES, %FTABLES);
@@ -159,7 +162,7 @@ sub truncate_staging_tables {
 
     ### truncating staging tables...
     $stage_dbh->do("truncate $_")
-        for ('packages', 'rpmkeys', keys %STAGE_TABLES);
+        for (@AUX_TABLES, keys %STAGE_TABLES);
 }
 
 sub load_staging_from_repo {
@@ -247,7 +250,19 @@ sub load_master_from_stage {
         from stage.packages
     ");
 
-    my %STAGE_TABLES = (%TABLES, %OTABLES, %FTABLES);
+    ### creating id_to_id mapping...
+    $stage_dbh->do("
+        insert into id_to_id
+        select p.pkgkey, rp.id
+        from packages as p inner join fedora.rpm_packages as rp
+            on p.pkgid = rp.rpmkey
+        where rp.repo_id = $repo_id
+    ");
+
+    ### update stage tables with new package keys (rpm_packages.id)...
+    $stage_dbh->do("update $_ set pkgkey = (select new_id from id_to_id where old_id = $_.pkgkey)")
+        for keys %STAGE_TABLES;
+
     for my $table (keys %STAGE_TABLES) {
 
         my $cols = $STAGE_TABLES{$table};
@@ -255,9 +270,8 @@ sub load_master_from_stage {
         ### updating: $table
         $fu_dbh->do("
             insert into rpm_$table
-            select null, PKGID($repo_id, P.pkgid), $cols
-            from stage.$table as T inner join stage.packages as P
-                on T.pkgkey = P.pkgkey
+            select null, pkgkey, $cols
+            from stage.$table as T
         ");
     }
 
