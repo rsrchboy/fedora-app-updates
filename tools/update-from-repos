@@ -58,13 +58,13 @@ my @AUX_TABLES = qw{ packages rpmids rpmkeys id_to_id };
 my %STAGE_TABLES = (%TABLES, %OTABLES, %FTABLES);
 
 my $stage_dbh = DBI->connect(
-    "dbi:mysql:$stage;hostname=$server",
+    "dbi:mysql:$stage;hostname=$server;mysql_compression=1",
     @ARGV[0..1],
     { RaiseError => 1, PrintError => 1, },
 );
 
 my $fu = Fedora::App::Updates::Schema->connect(
-    "dbi:mysql:fedora;hostname=$server",
+    "dbi:mysql:fedora;hostname=$server;mysql_compression=1",
     @ARGV[0..1],
 );
 
