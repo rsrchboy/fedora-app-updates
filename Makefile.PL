@@ -23,6 +23,10 @@ requires 'Config::General';
 requires 'DBIx::Class' => '0.08112';
 requires 'YUM::RepoQuery';
 
+# tools
+requires 'autodie';
+requires 'IPC::System::Simple';
+
 catalyst;
 
 install_script glob('script/*.pl');
