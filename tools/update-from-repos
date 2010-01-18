@@ -29,6 +29,7 @@ opts
     my $reload  => { isa => 'Bool', default => 0, alias => 'redo'         },
     my $do_only => { isa => 'Int',  default => 0, alias => 'do-only|only' },
     my $do_cpan => { isa => 'Bool', default => 0, }, # FIXME tmp anyways
+    my $server  => { isa => 'Str',  default => '172.16.42.70' },
     ;
 
 my ($TMPFH, $TMPFILE) = tempfile;
@@ -56,13 +57,13 @@ my @AUX_TABLES = qw{ packages rpmids rpmkeys id_to_id };
 my %STAGE_TABLES = (%TABLES, %OTABLES, %FTABLES);
 
 my $stage_dbh = DBI->connect(
-    'dbi:mysql:stage;hostname=172.16.42.70',
+    "dbi:mysql:stage;hostname=$server",
     @ARGV[0..1],
     { RaiseError => 1, PrintError => 1, },
 );
 
 my $fu = Fedora::App::Updates::Schema->connect(
-    'dbi:mysql:fedora;hostname=172.16.42.70',
+    "dbi:mysql:fedora;hostname=$server",
     @ARGV[0..1],
 );
 
