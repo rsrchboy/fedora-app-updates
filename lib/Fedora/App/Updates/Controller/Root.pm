@@ -68,7 +68,7 @@ sub packages : Path('packages') Args(0) {
     my $page = $c->request->param('page');
     $page = 1 if (not defined $page) || ($page !~ /^\d+$/);
 
-    $packages = $c->stash->{packages}->page($page);
+    $c->stash->{packages} = $packages = $c->stash->{packages}->page($page);
     $c->stash->{pager} = $packages->pager;
 
     # get our list of dists to display
