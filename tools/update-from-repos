@@ -173,7 +173,7 @@ while (my $repo = $repos->next) {
             warn "Error: $_";
 
             do { warn "Retrying...\n"; redo MAIN_LOOP } if $try++ < 3;
-            die;
+	    next MAIN_LOOP;
         };
 
         $repo->create_related(logs => {
