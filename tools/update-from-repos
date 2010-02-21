@@ -93,12 +93,22 @@ if ($do_cpan) {
 
     ### doing cpan...
 
-    # FIXME bits to update the cpan sqlite db...
-    my $fn = file 'cpandb.sql';
-    #load_table_to_staging($fn, $_) for (qw{ auths chaps dists mods });
+    Class::MOP::load_class('CPAN::SQLite');
 
-    ### copying cpan tables to master...
-    $fu_dbh->do("insert into cpan_$_ select * from $stage.$_")
+    ### creating cpan/sqlite object...
+    #my $obj = CPAN::SQLite->new(db_dir => dir->absolute);
+    my $obj = CPAN::SQLite->new;
+
+    ### creating db...
+    $obj->index(setup => 1);
+
+    ### load staging from update the cpan sqlite db...
+    # hm.  for some reason db_dir doesn't seem to work as advertized...
+    my $fn = file $ENV{HOME}, '.cpan', 'cpandb.sql';
+    load_table_to_staging($fn, $_) for (qw{ auths chaps dists mods });
+
+    ### copying cpan tables (staging) to master...
+    $fu_dbh->do("replace into cpan_$_ select * from $stage.$_")
         for (qw{ auths chaps dists mods });
 
     exit;
