@@ -27,6 +27,8 @@ requires 'YUM::RepoQuery';
 requires 'autodie';
 requires 'IPC::System::Simple';
 requires 'CPAN::SQLite';
+requires 'URI::Fetch';
+requires 'JSON::XS';
 
 catalyst;
 

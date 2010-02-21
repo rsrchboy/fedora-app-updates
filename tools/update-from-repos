@@ -15,11 +15,14 @@ use lib "$FindBin::Bin/../lib";
 use DateTime;
 use DBI;
 use File::Temp 'tempfile';
+use JSON::XS;
 use Path::Class;
 use Scope::Guard;
 use YUM::RepoQuery;
 #use TryCatch;
 use Try::Tiny;
+use URI::Fetch;
+
 use Fedora::App::Updates::Schema;
 
 # debugging...
@@ -31,6 +34,8 @@ opts
     my $do_cpan => { isa => 'Bool', default => 0, }, # FIXME tmp anyways
     my $server  => { isa => 'Str',  default => '172.16.42.70' },
     my $stage   => { isa => 'Str',  default => 'fedora_stage' },
+
+    my $do_pkgdb => { isa => 'Bool', default => 0 },
     ;
 
 my ($TMPFH, $TMPFILE) = tempfile;
@@ -110,6 +115,40 @@ if ($do_cpan) {
     ### copying cpan tables (staging) to master...
     $fu_dbh->do("replace into cpan_$_ select * from $stage.$_")
         for (qw{ auths chaps dists mods });
+
+    exit;
+}
+
+# NOTE: a lot of this code is more or less lifted straight out of the old
+# "check-upstream" script.  It, like these tables themselves, could use some
+# serious attention.
+
+if ($do_pkgdb) {
+
+    my $url =
+        'https://admin.fedoraproject.org/pkgdb/acls/bugzilla?tg_format=json';
+
+    # load the classes we need
+    #Class::MOP::load_class($_) for qw{ URI::Fetch JSON::XS };
+
+    ### fetching the raw data...
+    # FIXME I know, "not optimal"
+    my $data =
+        decode_json(URI::Fetch->fetch($url)->content)
+        ->{bugzillaAcls}->{Fedora}
+        ;
+
+    ### now, load into db...
+    my $user_rs = $fu->resultset('Users');
+    my $pkg_rs  = $fu->resultset('Packages');
+    my %seen;
+
+    for my $name (keys %$data) {
+
+        my $owner = $data->{$name}->{owner};
+        $user_rs->find_or_create({ id => $owner }) unless $seen{$owner}++;
+        $pkg_rs->update_or_create({ owner_id => $owner, name => $name });
+    }
 
     exit;
 }
