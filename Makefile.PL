@@ -26,6 +26,7 @@ requires 'YUM::RepoQuery';
 # tools
 requires 'autodie';
 requires 'IPC::System::Simple';
+requires 'CPAN::SQLite';
 
 catalyst;
 
