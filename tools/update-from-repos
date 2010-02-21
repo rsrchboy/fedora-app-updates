@@ -203,10 +203,19 @@ sub pull_and_load_yum_repo {
 
     truncate_staging_tables();
 
-    load_staging_from_repo($r);
-    load_staging_from_repo($sr) if $sr;
+    if ($sr) {
+    
+        ### doing src repo...
+        load_staging_from_repo($sr);
 
+        ### bump pkgkeys to avoid collisions...
+        $stage_dbh->do("update $_ set pkgkey = pkgkey + 100000")
+		for ('packages', keys %STAGE_TABLES);
+    }
+
+    load_staging_from_repo($r);
     load_master_from_stage($repo);
+
 }
 
 sub truncate_staging_tables {
