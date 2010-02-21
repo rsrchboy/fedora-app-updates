@@ -7,10 +7,10 @@ you will be able to execute these primitive actions:
 <li><a href="[% c.uri_for('/users') %]">A list of all those who
 own perl packages in Fedora</a></li>
 
-<li><a href="[% c.uri_for('/packages/list') %]">A list of all 
+<li><a href="[% c.uri_for('/packages') %]">A list of all
 perl packages in Fedora</a></li>
 
-<li><a href="[% c.uri_for('/dist/list') %]">A list of all tag
+<li><a href="[% c.uri_for('/dist') %]">A list of all tag
 pairings (ga/updates/testing/candidates) that defines a "release" (e.g. F-8)</a></li>
 
 </li>
