@@ -83,7 +83,7 @@ __PACKAGE__->has_many(
 
 __PACKAGE__->belongs_to(
     'collection',
-    'Collection',
+    'Collections',
     { 'foreign.id' => 'self.collection_id' },
 );
 
