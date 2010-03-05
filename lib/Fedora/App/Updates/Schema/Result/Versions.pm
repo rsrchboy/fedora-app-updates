@@ -1,12 +1,139 @@
 package Fedora::App::Updates::Schema::Result::Versions;
 
+# Created by DBIx::Class::Schema::Loader
+# DO NOT MODIFY THE FIRST PART OF THIS FILE
+
 use strict;
 use warnings;
 
-use base 'DBIx::Class';
+use base 'DBIx::Class::Core';
 
-__PACKAGE__->load_components("InflateColumn::DateTime", "Core");
+__PACKAGE__->load_components("InflateColumn::DateTime");
+
+=head1 NAME
+
+Fedora::App::Updates::Schema::Result::Versions
+
+=cut
+
 __PACKAGE__->table("versions");
+
+=head1 ACCESSORS
+
+=head2 dist_id
+
+  data_type: INT
+  default_value: undef
+  is_nullable: 0
+  size: 11
+
+=head2 package_id
+
+  data_type: INT
+  default_value: undef
+  is_nullable: 0
+  size: 11
+
+=head2 ga_version
+
+  data_type: VARCHAR
+  default_value: undef
+  is_nullable: 1
+  size: 16
+
+=head2 ga_release
+
+  data_type: VARCHAR
+  default_value: undef
+  is_nullable: 1
+  size: 16
+
+=head2 ga_build_id
+
+  data_type: INT
+  default_value: undef
+  is_nullable: 1
+  size: 11
+
+=head2 updates_version
+
+  data_type: VARCHAR
+  default_value: undef
+  is_nullable: 1
+  size: 16
+
+=head2 updates_release
+
+  data_type: VARCHAR
+  default_value: undef
+  is_nullable: 1
+  size: 16
+
+=head2 updates_build_id
+
+  data_type: INT
+  default_value: undef
+  is_nullable: 1
+  size: 11
+
+=head2 testing_version
+
+  data_type: VARCHAR
+  default_value: undef
+  is_nullable: 1
+  size: 16
+
+=head2 testing_release
+
+  data_type: VARCHAR
+  default_value: undef
+  is_nullable: 1
+  size: 16
+
+=head2 testing_build_id
+
+  data_type: INT
+  default_value: undef
+  is_nullable: 1
+  size: 11
+
+=head2 candidates_version
+
+  data_type: VARCHAR
+  default_value: undef
+  is_nullable: 1
+  size: 16
+
+=head2 candidates_release
+
+  data_type: VARCHAR
+  default_value: undef
+  is_nullable: 1
+  size: 16
+
+=head2 candidates_build_id
+
+  data_type: INT
+  default_value: undef
+  is_nullable: 1
+  size: 11
+
+=head2 stamp
+
+  data_type: TIMESTAMP
+  default_value: SCALAR(0x1370ef8)
+  is_nullable: 0
+  size: 14
+
+=head2 extra
+
+  data_type: TEXT
+  default_value: undef
+  is_nullable: 1
+  size: 65535
+
+=cut
+
 __PACKAGE__->add_columns(
   "dist_id",
   { data_type => "INT", default_value => undef, is_nullable => 0, size => 11 },
@@ -79,7 +206,7 @@ __PACKAGE__->add_columns(
   "stamp",
   {
     data_type => "TIMESTAMP",
-    default_value => "CURRENT_TIMESTAMP",
+    default_value => \"CURRENT_TIMESTAMP",
     is_nullable => 0,
     size => 14,
   },
@@ -94,8 +221,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("dist_id", "package_id");
 
 
-# Created by DBIx::Class::Schema::Loader v0.04006 @ 2010-01-04 21:06:11
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:BA8JLmoEvxtZP7f87JC4kQ
+# Created by DBIx::Class::Schema::Loader v0.05002 @ 2010-03-04 23:10:25
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ADMmRybMQDW+xZ9ESOCGtg
 
 __PACKAGE__->belongs_to(
   'dist',

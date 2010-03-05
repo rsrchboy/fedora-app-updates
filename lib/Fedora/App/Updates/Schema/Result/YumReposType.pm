@@ -1,4 +1,4 @@
-package Fedora::App::Updates::Schema::Result::RpmFiles;
+package Fedora::App::Updates::Schema::Result::YumReposType;
 
 # Created by DBIx::Class::Schema::Loader
 # DO NOT MODIFY THE FIRST PART OF THIS FILE
@@ -12,11 +12,11 @@ __PACKAGE__->load_components("InflateColumn::DateTime");
 
 =head1 NAME
 
-Fedora::App::Updates::Schema::Result::RpmFiles
+Fedora::App::Updates::Schema::Result::YumReposType
 
 =cut
 
-__PACKAGE__->table("rpm_files");
+__PACKAGE__->table("yum_repos_type");
 
 =head1 ACCESSORS
 
@@ -28,26 +28,12 @@ __PACKAGE__->table("rpm_files");
   is_nullable: 0
   size: 11
 
-=head2 rpm_package_id
+=head2 repo_type
 
-  data_type: INT
+  data_type: VARCHAR
   default_value: undef
   is_nullable: 0
-  size: 11
-
-=head2 name
-
-  data_type: VARCHAR
-  default_value: undef
-  is_nullable: 1
-  size: 255
-
-=head2 type
-
-  data_type: VARCHAR
-  default_value: undef
-  is_nullable: 1
-  size: 255
+  size: 20
 
 =cut
 
@@ -60,28 +46,19 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
     size => 11,
   },
-  "rpm_package_id",
-  { data_type => "INT", default_value => undef, is_nullable => 0, size => 11 },
-  "name",
+  "repo_type",
   {
     data_type => "VARCHAR",
     default_value => undef,
-    is_nullable => 1,
-    size => 255,
-  },
-  "type",
-  {
-    data_type => "VARCHAR",
-    default_value => undef,
-    is_nullable => 1,
-    size => 255,
+    is_nullable => 0,
+    size => 20,
   },
 );
 __PACKAGE__->set_primary_key("id");
 
 
 # Created by DBIx::Class::Schema::Loader v0.05002 @ 2010-03-04 23:10:25
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:GOiQ//UlOgTKJrA8wwVNbQ
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:swxo6FZmWEPQ++AixQRgRw
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
