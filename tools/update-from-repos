@@ -213,7 +213,7 @@ sub do_repo {
     }
     else {
 
-        ### repo is up to date, skipping...
+        DEBUG 'repo is up to date, skipping...';
         $repo->create_related(logs => { status => 'UPTODATE' });
     }
 }
@@ -248,7 +248,7 @@ sub pull_and_load_yum_repo {
 
 sub truncate_staging_tables {
 
-    ### truncating staging tables...
+    DEBUG 'truncating staging tables...';
     $stage_dbh->do("truncate $_")
         for (@AUX_TABLES, keys %STAGE_TABLES);
 }
@@ -351,7 +351,7 @@ sub load_master_from_stage {
         from $stage.packages
     ");
 
-    ### creating id_to_id mapping...
+    TRACE 'creating id_to_id mapping...';
     $stage_dbh->do("
         insert into id_to_id
         select p.pkgkey, rp.id
@@ -428,5 +428,5 @@ sub load_master_table_from_stage {
     return;
 }
 
-### fini...
+INFO 'fini...';
 
