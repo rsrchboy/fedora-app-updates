@@ -57,9 +57,9 @@ sub _explode {
 
 =cut
 
-sub packages : Local ActionClass('REST') { }
+sub package_names : Local ActionClass('REST') { }
 
-sub packages_GET {
+sub package_names_GET {
     my ($self, $c) = @_;
 
     my $like = $c->req->params->{name} || '%';
@@ -99,6 +99,61 @@ sub packages_GET {
 
     @names = map { { name => $_, label => $_ } } @names;
     $self->status_ok($c, entity => \@names);
+}
+
+
+sub packages : Local ActionClass('REST') { }
+
+sub packages_GET {
+    my ($self, $c) = @_;
+
+    # FIXME need search bits here
+    my $search = $self->query_to_dbic($c);
+
+    my $rs = $c->model('Updates::Packages')->search($search, { order_by => 'name' });
+    my $transform_sub = sub { shift->all_versions };
+
+    return $self->handle_partial_request($c, $rs, $transform_sub)
+        if $c->req->header('Range');
+
+    return $self->status_ok($c, entity => $transform_sub->($rs));
+}
+
+sub query_to_dbic {
+    my ($self, $c) = @_;
+
+    # We only look for name here at the moment...  this should be extended as
+    # needed later.
+    return unless my $name = $c->req->parameters->{name};
+
+    if ($name =~ /\*/) {
+
+        # if we're a wildcard search...
+        $name =~ s/\*/%/g;
+        return { name => { LIKE => $name } };
+    }
+
+    return { name => $name };
+}
+
+sub handle_partial_request {
+    my ($self, $c, $rs, $transform_sub) = @_;
+
+    return unless my $range = $c->req->header('Range');
+
+    my $total = $rs->count;
+
+    # break out our start and end ranges...
+    # we do sometimes see 'items=0-'
+    $range =~ s/items=//;
+    my ($from, $to) = split /-/, $range;
+    $to = $total unless $to && $to < $total;
+
+    # now, touch up our result set...
+    $rs = $rs->search(undef, { rows => $to - $from + 1, offset => $from });
+
+    $c->res->header('Content-Range' => "items $from-$to/$total");
+    return $self->status_partial_content($c, entity => $transform_sub->($rs));
 }
 
 =head1 AUTHOR

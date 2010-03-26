@@ -4,39 +4,35 @@
   <title>[% template.title or site.title %]</title>
 
   <!--- dojo bits --->
-[% IF 0 %]
-  <link rel="stylesheet" type="text/css"
-    href="http://o.aolcdn.com/dojo/1.1/dojo/resources/dojo.css" />
+[% IF c.debug %]
   <script
     type="text/javascript"
-    src="http://o.aolcdn.com/dojo/1.1/dojo/dojo.xd.js" 
-    djconfig="parseOnLoad:true">
+    src="[% c.uri_for('/static/js/dojo/1.4/dojo/dojo.js.uncompressed.js') %]"
+    djconfig="parseOnLoad:true,isDebug:true,current_domain:'localhost'">
   </script>
 [% ELSE %]
-  <link rel="stylesheet" type="text/css"
-    href="http://o.aolcdn.com/dojo/1.3/dojo/resources/dojo.css" />
-  <link rel="stylesheet" type="text/css" id="themeStyles"
-    href="http://o.aolcdn.com/dojo/1.3/dijit/themes/tundra/tundra.css" />
-  <link rel="stylesheet" type="text/css" 
-    href="http://o.aolcdn.com/dojo/1.3/dijit/themes/tundra/form/Common.css" />
-  <link rel="stylesheet" type="text/css"
-    href="http://o.aolcdn.com/dojo/1.3/dijit/themes/tundra/form/Button.css" />
   <script
     type="text/javascript"
-    src="[% c.uri_for('/static/dojo-1.3/dojo/dojo.js.uncompressed.js') %]" 
-    djconfig="parseOnLoad:true,current_domain:'localhost'"
-  >
+    src="[% c.uri_for('/static/js/dojo/1.4/dojo/dojo.js') %]"
+    djconfig="parseOnLoad:true">
   </script>
 [% END %]
+  <link rel="stylesheet" type="text/css"
+    href="http://fedoraproject.org/static/css/fedora.css" />
+    <!-- href="[% c.uri_for('/static/css/fedora.css' ) %]" /> -->
+  <link rel="stylesheet" type="text/css"
+    href="[% c.uri_for('/static/js/dojo/1.4/dojo/resources/dojo.css') %]" />
+  <link rel="stylesheet" type="text/css"
+    href="[% c.uri_for('/static/js/dojo/1.4/dijit/themes/tundra/tundra.css') %]" />
   <style type="text/css" media="screen">
 [% PROCESS ttsite.css %]
   </style>
-  <link 
+  <link
     rel="stylesheet" type="text/css" media="print"
     href="http://fedoraproject.org/static/css/print.css"
   />
  </head>
- <body>
+ <body class="tundra">
 [% content %]
  </body>
 </html>

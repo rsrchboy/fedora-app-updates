@@ -28,7 +28,7 @@
 
 <!-- http://search.cpan.org/diff?from=Class-MOP-0.55&to=Class-MOP-0.57 -->
 
-[% FOREACH version = package.versions %]
+[% FOREACH version = package.versions.sort %]
     <tr class="[% IF loop.index % 2 %]even[% ELSE %]odd[% END %]">
         <td>[% version.dist.shortname     | html %]</td>
         <td><div class="[% version.update_class %]">[% version.current | html %]</div></td>

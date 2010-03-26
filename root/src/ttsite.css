@@ -11,7 +11,7 @@
 @import url("[% c.uri_for('/static/css/docbook.css') %]");
 */
 
-@import url("http://fedoraproject.org/static/css/fedora.css");
+/* @import url("http://fedoraproject.org/static/css/fedora.css"); */
 
 /* snagged from https://admin.fedoraproject.org/pkgdb/static/css/pkgdb.css */
 

@@ -1,86 +1,129 @@
+[%# /* vim: set filetype=tt2html : */ -%]
 [% META title = 'Package Listing' %]
 
-<script type="text/javascript">
+<link rel="stylesheet" type="text/css"
+    href="[% c.uri_for('/static/js/dojo/1.4/dojox/grid/resources/Grid.css') %]" />
+<link rel="stylesheet" type="text/css"
+    href="[% c.uri_for('/static/js/dojo/1.4/dojox/grid/resources/tundraGrid.css') %]" />
+<link rel="stylesheet" type="text/css"
+    href="[% c.uri_for('/static/js/dojo/1.4/dojox/grid/enhanced/resources/tundraEnhancedGrid.css') %]" />
+<link rel="stylesheet" type="text/css"
+    href="[% c.uri_for('/static/js/dojo/1.4/dojox/grid/enhanced/resources/EnhancedGrid_rtl.css') %]" />
 
-dojo.require("dojox.data.ClientFilter");
-dojo.require("dojox.data.JsonRestStore"); 
-dojo.require("dijit.dijit");
-dojo.require("dijit.form.Button");
-dojo.require("dijit.form.ComboBox");
+<style type="text/css">
+  /*
+  @import "[% c.uri_for('/static/js/dojo/1.4/dojox/grid/resources/Grid.css') %]";
+  @import "[% c.uri_for('/static/js/dojo/1.4/dojox/grid/resources/tundraGrid.css') %]";
+  @import "/static/js/dojo/1.4/dojox/grid/enhanced/resources/tundraEnhancedGrid.css";
+  @import "/static/js/dojo/1.4/dojox/grid/enhanced/resources/EnhancedGrid_rtl.css";
+  */
 
-var store;
-var search_box;
+  #grid1, #grid2, #grid3 {
+    width: 85.2em;
+    height: 50em;
+  }
 
-dojo.addOnLoad(function() {
+  /* .dojoxGrid td, .dojoxGrid th {
+  #gridDiv td, #gridDiv th { */
+  #content .dojoxGridCell {
 
-    store = new dojox.data.JsonRestStore({ target: '/rest/packages' });
-    
-    search_box = new dijit.form.ComboBox({
-        name:         "search",
-        autoComplete: true,
-        store:        store,
-        pageSize:     30,
-    }, dojo.byId("[% search_form.field('search_text').id %]"));
+    border-color:transparent #D5CDB5 #D5CDB5 transparent;
+  }
 
+  /* this feels.... wrong. */
+  #content table.dojoxGridRowTable th, #content table.dojoxGridRowTable td { border-width: 0px; }
+</style>
+
+
+<script language="javascript">
+
+dojo.require("dojox.grid.EnhancedGrid");
+dojo.require("dojox.grid.enhanced.plugins.DnD");
+dojo.require("dojox.grid.enhanced.plugins.Menu");
+dojo.require("dojox.grid.enhanced.plugins.NestedSorting");
+dojo.require("dojox.grid.enhanced.plugins.IndirectSelection");
+
+dojo.require("dijit.layout.BorderContainer");
+dojo.require("dijit.layout.ContentPane");
+
+dojo.require("dijit.form.FilteringSelect");
+
+dojo.ready(function() {
+
+    dojo.connect(dojo.byId("side_package_search"), "onchange",
+        function(value) {
+            pkgGrid.setQuery({ name: dijit.byId('side_package_search').value });
+        }
+    );
 
 });
 
+function format_cell(dist, value) {
+    var item = packagesStore.getItem(row.index);
+    if (item) {
+      var upstream = packagesStore.getValue(item, "upstream_ga", null);
+      var rawhide = packagesStore.getValue(item, "rawhide", null);
+    }
+}
+
+function format_rawhide(value) { format_cell('rawhide', value); }
+
 </script>
 
-<!--- begin packages --->
+<!-- begin packages -->
 
-  <div id="package_search">
-  <h2>Search Packages</h2>
-      <form 
-        name="[% search_form.name %]"
-        action="[% c.uri_for("packages/search") %]"
-        method="post"
-      >
-        [% f = search_form.field('search_text') %]
-        <input type="text" id="[% f.id %]" name="[% f.name %]" value="[% f.fif %]" />
-        <input class="button" name="commit" type="submit" value="Submit" />
-      </form>
-   </div>
+<h2>Package Index</h2>
 
-<p>Displaying entries [% pager.first %]-[% pager.last %] of
-[% pager.total_entries %].
+[%# Note that we do the layout declaratively, rather than programmatically.
+    This is essentially because I don't feel terribly bad about using tt2 to
+    create the structure here, whereas it would feel amazingly awkward to use
+    it for a js struct, above.  (And using js itself feels like more work than
+    it really ought to be for this.)
+-%]
 
-&lt;&lt;
-<a href="[% c.req.uri_with({ page => pager.first_page }) %]">First</a>
-<a href="[% c.req.uri_with({ page => pager.previous_page
-})%]">Previous</a>
-|
-<a href="[% c.req.uri_with({ page => pager.next_page })%]">Next</a>
-<a href="[% c.req.uri_with({ page => pager.last_page }) %]">Last</a>
- &gt;&gt;
-</p>
+<span dojoType="dojox.data.JsonRestStore" jsId="packagesStore" target="/rest/packages"></span>
 
-<table id="fedora-list-packages">
+<div dojoType="dijit.layout.BorderContainer" design="headline" style="width: 100%; height: 100%;" gutters="true" liveSplitters="true" id="borderContainer">
+
+<div dojoType="dijit.layout.ContentPane" splitter="true" region="top">
+
+<select dojoType="dijit.form.FilteringSelect" id="packageGroups" name="packageGroups">
+  <script type="dojo/method" event="onChange">
+   packagesGrid.setQuery(dojo.fromJson(this.value));
+  </script>
+    <option value="{ name: '*' }"              >All Packages</option>
+    <option value="{ name: 'perl*' }" selected >Perl Packages</option>
+    <option value="{ name: 'perl-Catalyst*' }" >perl-Catalyst (all)</option>
+    <option value="{ name: 'perl-CGI-Application*' }" >perl-CGI-Application (all)</option>
+    <option value="{ name: 'perl-Moose*' }"    >perl-Moose (all)</option>
+</select>
+
+</div>
+
+<table
+    dojoType="dojox.grid.EnhancedGrid"
+    store="packagesStore"
+    query="{ name: 'perl-*' }"
+    jsId="packagesGrid"
+    rowsPerPage="150"
+    clientSort="true"
+    escapeHTMLInData="false"
+    region="center"
+    style="width: 100%; height: 100%;"
+    classTag="nobordersplz"
+>
+  <thead>
     <tr>
-        <th>Name</th>
-        <th>owner</th>
-        <th>Upstream</th>
-        [% FOREACH dist = dists %]
-        <th>[% dist %]</th>
-        [% END %]        
-        <!-- <th>Last Change Noted</th> -->
-    </tr>
-
-[% FOREACH package = packages.all %]
-
-    <tr class="[% IF loop.index % 2 %]even[% ELSE %]odd[% END %]">
-        <td><a href="[% c.uri_for("/package/$package.name") %]">[% package.name | html %]</a></td>
-        <td><a href="[% c.uri_for("/user/$package.owner_id") %]">[% package.owner_id | html %]</a></td>
-        <td>[% package.upstream_ga | html %]</td>
-        [% FOREACH id = dist_ids %] 
-        [%   version = package.dist_version(id) %]
-        <td><div class="[% version.update_class %]">[% version.current | html %]</div></td>
-        [% END %]        
-     <!--    <td>[% package.stamp       | html %]</td> -->
-    </tr>
-
-[% END %]
-
+      <th field="name" cellType="dojox.grid.cells._Widget"  width="20em">Package</th>
+      <th field="owner"         width="8em">Owner</th>
+      <th field="upstream_ga"   width="8em" >Upstream</th>
+[% FOREACH dist = dists -%]
+      <th field="[% dist %]-html" cellType="dojox.grid.cells._Widget" width="8em">[% dist %]</th>
+[% END -%]
+    <tr>
+  </thead>
 </table>
 
-<!--- end packages --->
+</div> [%# bordercontainer %]
+
+<!-- end packages -->
