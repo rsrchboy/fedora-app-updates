@@ -292,17 +292,28 @@ sub load_table_to_staging {
 sub load_master_from_stage {
     my $repo = shift @_;
 
-    my $repo_id = $repo->id;
-    my $coll_id = $repo->collection_id;
+
+    my ($repo_id, $coll_id, $source) =
+        ($repo->id, $repo->collection_id, $repo->source);
 
     # FIXME we could do better here
     my %type_clause = (
         'ga'                => '1, 0, 0, 0',
         'updates'           => '0, 1, 0, 0',
         'updates-testing'   => '0, 0, 1, 0',
+
+        # let's call buildroot bits GA.
+        'buildroot'         => '1, 0, 0, 0',
     );
 
-    my $type_clause = $type_clause{$repo->source} || '0, 0, 0, 0';
+    my %col = (
+        ga                => 'in_ga', 
+        updates           => 'in_updates', 
+        'updates-testing' => 'in_testing',
+        buildroot         => 'in_ga',
+    );
+
+    my $type_clause = $type_clause{$source} || '0, 0, 0, 0';
 
     TRACE 'trim rpm_packages...';
     # I'm told this is faster under mysql than a simple subquery...
@@ -349,6 +360,7 @@ sub load_master_from_stage {
             rpm_packager, size_package, size_installed, size_archive,
             location_href, location_base, checksum_type
         from $stage.packages
+        on duplicate key update $col{$source} = 1
     ");
 
     TRACE 'creating id_to_id mapping...';
