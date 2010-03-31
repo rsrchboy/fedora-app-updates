@@ -1,36 +1,14 @@
 package Fedora::App::Updates::Controller::REST;
 
-use strict;
-use warnings;
+use Moose;
+use namespace::autoclean;
 
-use parent 'Catalyst::Controller::REST';
+BEGIN { extends  'Catalyst::Controller::REST' }
 
 use DBIx::Class::ResultClass::HashRefInflator;
 
-=head1 NAME
-
-Fedora::App::Updates::Controller::REST - Catalyst Controller
-
-=head1 DESCRIPTION
-
-RESTful Catalyst Controller.
-
-=head1 HELPERS
-
-=head2 status_partial_content
-
-Returns a "206 Partial Content" response.  Takes an "entity" to serialize.
-
-Dojo uses this for requesting chunks of information..
-
-Example:
-
-  $self->status_partial_content(
-     $c,
-     entity => { ... },
-  );
-
-=cut
+##############################################################3
+# Helpers
 
 sub status_partial_content {
     my $self = shift;
@@ -43,6 +21,9 @@ sub status_partial_content {
     return 1;
 }
 
+# take a DBIC::ResultSet and "explode" it out into an arrayref of hashrefs
+# (hashrefs being just the raw rows).
+
 sub _explode {
     my ($self, $rs) = @_;
 
@@ -51,11 +32,28 @@ sub _explode {
     return [ $rs->all ];
 }
 
-=head1 METHODS
+sub handle_partial_request {
+    my ($self, $c, $rs, $transform_sub) = @_;
 
-=head2 packages
+    return unless my $range = $c->req->header('Range');
 
-=cut
+    my $total = $rs->count;
+
+    # break out our start and end ranges...
+    # we do sometimes see 'items=0-'
+    $range =~ s/items=//;
+    my ($from, $to) = split /-/, $range;
+    $to = $total unless $to && $to < $total;
+
+    # now, touch up our result set...
+    $rs = $rs->search(undef, { rows => $to - $from + 1, offset => $from });
+
+    $c->res->header('Content-Range' => "items $from-$to/$total");
+    return $self->status_partial_content($c, entity => $transform_sub->($rs));
+}
+
+##############################################################3
+# Actions
 
 sub package_names : Local ActionClass('REST') { }
 
@@ -64,7 +62,7 @@ sub package_names_GET {
 
     my $like = $c->req->params->{name} || '%';
     $like =~ s/\*/%/g;
-    
+
     my $rs = $c->model('Updates::Packages');
     my @names = $rs
         ->search(
@@ -84,7 +82,7 @@ sub package_names_GET {
         warn "to: $to";
         $to = $total - 1 unless $to && $to < $total;
 
-        my @partial = @names[$from..$to]; 
+        my @partial = @names[$from..$to];
 
         # make sure $to = $from + actual number of items
         $to = $from + scalar @partial;
@@ -110,7 +108,7 @@ sub packages_GET {
     # FIXME need search bits here
     my $search = $self->query_to_dbic($c);
 
-    my $rs = $c->model('Updates::Packages')->search($search, { order_by => 'name' });
+    my $rs = $c->model('Updates::Packages')->search($search, { order_by => 'me.name' });
     my $transform_sub = sub { shift->all_versions };
 
     return $self->handle_partial_request($c, $rs, $transform_sub)
@@ -130,58 +128,76 @@ sub query_to_dbic {
 
         # if we're a wildcard search...
         $name =~ s/\*/%/g;
-        return { name => { LIKE => $name } };
+        return { 'me.name' => { LIKE => $name } };
     }
 
-    return { name => $name };
+    return { 'me.name' => $name };
 }
 
-sub handle_partial_request {
-    my ($self, $c, $rs, $transform_sub) = @_;
+__PACKAGE__->meta->make_immutable;
 
-    return unless my $range = $c->req->header('Range');
+__END__
 
-    my $total = $rs->count;
+=head1 NAME
 
-    # break out our start and end ranges...
-    # we do sometimes see 'items=0-'
-    $range =~ s/items=//;
-    my ($from, $to) = split /-/, $range;
-    $to = $total unless $to && $to < $total;
+Fedora::App::Updates::Controller::REST - Catalyst Controller
 
-    # now, touch up our result set...
-    $rs = $rs->search(undef, { rows => $to - $from + 1, offset => $from });
+=head1 DESCRIPTION
 
-    $c->res->header('Content-Range' => "items $from-$to/$total");
-    return $self->status_partial_content($c, entity => $transform_sub->($rs));
-}
+RESTful Catalyst Controller.
+
+=head1 HELPERS
+
+=head2 status_partial_content
+
+Returns a "206 Partial Content" response.  Takes an "entity" to serialize.
+
+Dojo uses this for requesting chunks of information.
+
+Example:
+
+  $self->status_partial_content(
+     $c,
+     entity => { ... },
+  );
+
+=head2 _explode
+
+Take a L<DBIx::Class::ResultSet> and "explode" it out into a collection of
+hashrefs, using L<DBIx::Class::ResultClass::HashRefInflator>.
+
+=head1 PATH ACTIONS
+
+=head2 package_names
+
+
+=head2 packages
+
 
 =head1 AUTHOR
 
-Chris Weyl
+Chris Weyl <cweyl@alumni.drew.edu>
 
 =head1 LICENCE AND COPYRIGHT
 
 Copyright (c) 2008, Chris Weyl <cweyl@alumni.drew.edu>
 
 This library is free software; you can redistribute it and/or modify it under
-the terms of the GNU Lesser General Public License as published by the Free 
-Software Foundation; either version 2.1 of the License, or (at your option) 
+the terms of the GNU Lesser General Public License as published by the Free
+Software Foundation; either version 2.1 of the License, or (at your option)
 any later version.
 
-This library is distributed in the hope that it will be useful, but WITHOUT 
+This library is distributed in the hope that it will be useful, but WITHOUT
 ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 OR A PARTICULAR PURPOSE.
 
-See the GNU Lesser General Public License for more details.  
+See the GNU Lesser General Public License for more details.
 
-You should have received a copy of the GNU Lesser General Public License 
-along with this library; if not, write to the 
+You should have received a copy of the GNU Lesser General Public License
+along with this library; if not, write to the
 
-    Free Software Foundation, Inc., 
-    59 Temple Place, Suite 330, 
+    Free Software Foundation, Inc.,
+    59 Temple Place, Suite 330,
     Boston, MA  02111-1307 USA
 
 =cut
-
-1;

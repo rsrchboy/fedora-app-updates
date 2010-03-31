@@ -24,8 +24,9 @@ sub all_versions {
     my ($self) = @_;
 
     my @rows = ();
+    my $rs = $self->search(undef, { prefetch => { versions => 'dist' } });
 
-    while (my $row = $self->next) {
+    for my $row ($rs->all) {
 
         # FIXME this should all be refactored out into a Result class method
 
@@ -35,18 +36,14 @@ sub all_versions {
             owner       => $row->owner_id,
         };
 
-        my $versions_rs = $row->search_related(
-            'versions', undef, { prefetch => [ 'dist' ] },
-        );
-
         #$data->{$_->dist->shortname} = $_->current while $_ = $versions_rs->next;
-        while (my $v = $versions_rs->next) {
+        for my $v ($row->versions->all) {
 
             #my $sn = $v->dist->shortname;
             my ($sn, $c, $class) =
                 ($v->dist->shortname, $v->current, $v->update_class);
-            $data->{$sn}         = $v->current;
-            $data->{"$sn-class"} = $v->update_class;
+            $data->{$sn}         = $c;     # $v->current;
+            $data->{"$sn-class"} = $class; # $v->update_class;
             $data->{"$sn-html"}  = qq{<span class="$class">$c</span>};
         }
 

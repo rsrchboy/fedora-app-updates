@@ -3,35 +3,24 @@
 
 <script language="javascript">
 
-/* dojo.require("dojox.data.ClientFilter"); */
 dojo.require("dojox.data.JsonRestStore");
 dojo.require("dijit.dijit");
 dojo.require("dijit.form.Form");
 dojo.require("dijit.form.Button");
 dojo.require("dijit.form.ComboBox");
 
-dojo.addOnLoad(function() {
-
-    store = new dojox.data.JsonRestStore({ target: '/rest/package_names' });
-
-    search_box = new dijit.form.ComboBox({
-        name:         "search",
-        autoComplete: true,
-        store:        store,
-        pageSize:     30,
-    }, dojo.byId("side_package_search"));
-
-
-});
-
 </script>
+
+<span dojoType="dojox.data.JsonRestStore" jsId="pkgNameStore" target="/rest/package_names"></span>
 
 <div id="nav">
   <h2>Search Packages</h2>
 
-        [% f = search_form.field('search_text') %]
-        <input type="text" id="side_package_search" name="side_package_search" />
-        <!--- <input dojoType="dijit.form.Button" class="button" name="commit" type="submit" value="Submit" /> --->
+    <input
+      type="text" dojoType="dijit.form.ComboBox" autoComplete="true"
+      pageSize="30" store="pkgNameStore"
+      title="We look pretty, but don't do anything yet!"
+    />
 
   <h2>Perl Listings</h2>
   <ul>

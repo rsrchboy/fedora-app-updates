@@ -1,9 +1,5 @@
 package Fedora::App::Updates::Controller::Root;
 
-#use strict;
-#use warnings;
-#use parent 'Catalyst::Controller';
-
 use Moose;
 BEGIN { extends 'Catalyst::Controller' }
 
@@ -13,63 +9,8 @@ BEGIN { extends 'Catalyst::Controller' }
 #
 __PACKAGE__->config->{namespace} = '';
 
-=head1 NAME
-
-Fedora::App::Updates::Controller::Root - Root Controller for Fedora::App::Updates
-
-=head1 DESCRIPTION
-
-[enter your description here]
-
-=head1 METHODS
-
-=cut
-
-=head2 index
-
-=cut
-
 sub index : Path Args(0) {
     my ( $self, $c ) = @_;
-
-    # Hello World
-    #$c->response->body( $c->welcome_message );
-}
-
-sub default : Path {
-    my ( $self, $c ) = @_;
-    $c->response->body( 'Page not found' );
-    $c->response->status(404);
-}
-
-use Fedora::App::Updates::Form::Search;
-
-has search_form => (
-    is      => 'ro',
-    isa     => 'Fedora::App::Updates::Form::Search',
-    lazy    => 1,
-    clearer => 'clear_search_form',
-    default => sub { Fedora::App::Updates::Form::Search->new },
-);
-
-sub packages : Path('packages') Args(0) {
-    my ($self, $c) = @_;
-
-    # setup our packages resultset
-    my $packages = $c->stash->{packages} = $c
-        ->model('Updates::Packages')
-        ->search(
-            { name => { like => 'perl%' }   },
-            { order_by => 'name', rows => 40},
-        )
-        ;
-
-    # let's try out this pager thingie, hmm?
-    my $page = $c->request->param('page');
-    $page = 1 if (not defined $page) || ($page !~ /^\d+$/);
-
-    $c->stash->{packages} = $packages = $c->stash->{packages}->page($page);
-    $c->stash->{pager} = $packages->pager;
 
     # get our list of dists to display
     my @dists = $c
@@ -80,30 +21,53 @@ sub packages : Path('packages') Args(0) {
         ;
     $c->stash->{dists} = \@dists;
 
-    my @dist_ids = $c
-        ->model('Updates::Dist')
-        ->search(undef, { order_by => 'shortname DESC' })
-        ->get_column('id')
-        ->all
-        ;
-    $c->stash->{dist_ids} = \@dist_ids;
+    return;
+}
 
-    $c->stash->{search_form} = $self->search_form;
+sub default : Path {
+    my ($self, $c) = @_;
+
+    $c->response->body('Page not found');
+    $c->response->status(404);
+}
+
+sub packages : Path('packages') Args(0) {
+    my ($self, $c) = @_;
+
+    # forward to /, redirect from old path...
+    $c->res->redirect($c->uri_for('/'), 301);
+    $c->detach;
 
     return;
 }
+
+sub end : ActionClass('RenderView') {}
+
+__PACKAGE__->meta->make_immutable;
+
+__END__
+
+=head1 NAME
+
+Fedora::App::Updates::Controller::Root - Root Controller for Fedora::App::Updates
+
+=head1 METHODS
+
+=head2 index
+
+The main -- and only -- real public path.
+
+=index2 packages
+
+Redirect to the index action -- formerly an active public path.
 
 =head2 end
 
 Attempt to render a view, if needed.
 
-=cut
-
-sub end : ActionClass('RenderView') {}
-
 =head1 AUTHOR
 
-Chris Weyl
+Chris Weyl <cweyl@alumni.drew.edu>
 
 =head1 LICENCE AND COPYRIGHT
 
@@ -129,4 +93,3 @@ along with this library; if not, write to the
 
 =cut
 
-1;
