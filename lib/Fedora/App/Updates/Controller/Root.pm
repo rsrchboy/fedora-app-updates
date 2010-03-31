@@ -21,6 +21,14 @@ sub index : Path Args(0) {
         ;
     $c->stash->{dists} = \@dists;
 
+    my @users = $c
+        ->model('Updates::Users')
+        ->search(undef, { order_by => 'id' })
+        ->get_column('id')
+        ->all
+        ;
+    $c->stash->{users} = \@users;
+
     return;
 }
 

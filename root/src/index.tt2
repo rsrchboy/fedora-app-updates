@@ -81,7 +81,8 @@ function format_rawhide(value) { format_cell('rawhide', value); }
     it really ought to be for this.)
 -%]
 
-<span dojoType="dojox.data.JsonRestStore" jsId="packagesStore" target="/rest/packages"></span>
+<span dojoType="dojox.data.JsonRestStore" jsId="packageStore" target="/rest/packages"></span>
+<span dojoType="dojox.data.JsonRestStore" jsId="userStore" target="/rest/users"></span>
 
 <div dojoType="dijit.layout.BorderContainer" design="headline" style="width: 100%; height: 100%;" gutters="true" liveSplitters="true" id="borderContainer">
 
@@ -96,13 +97,23 @@ function format_rawhide(value) { format_cell('rawhide', value); }
     <option value="{ name: 'perl-Catalyst*' }" >perl-Catalyst (all)</option>
     <option value="{ name: 'perl-CGI-Application*' }" >perl-CGI-Application (all)</option>
     <option value="{ name: 'perl-Moose*' }"    >perl-Moose (all)</option>
+    <option value="{ name: 'php*' }"    >PHP Packages</option>
 </select>
 
+<select dojoType="dijit.form.FilteringSelect" id="users_select" name="users_select">
+  <script type="dojo/method" event="onChange">
+   packagesGrid.setQuery(dojo.fromJson(this.value));
+  </script>
+    <option value="{ owner: '*' }"   selected >All Owners</option>
+[% FOREACH user = users -%]
+    <option value="{ owner: '[% user %]' }" >[% user | html %]</option>
+[% END -%]
+  </select>
 </div>
 
 <table
     dojoType="dojox.grid.EnhancedGrid"
-    store="packagesStore"
+    store="packageStore"
     query="{ name: 'perl-*' }"
     jsId="packagesGrid"
     rowsPerPage="150"

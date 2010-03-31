@@ -120,18 +120,29 @@ sub packages_GET {
 sub query_to_dbic {
     my ($self, $c) = @_;
 
-    # We only look for name here at the moment...  this should be extended as
-    # needed later.
-    return unless my $name = $c->req->parameters->{name};
+    # FIXME this needs refactoring... ew
+    my $name  = $c->req->parameters->{name};
+    my $owner = $c->req->parameters->{owner};
+
+    my $search = {};
 
     if ($name =~ /\*/) {
 
         # if we're a wildcard search...
         $name =~ s/\*/%/g;
-        return { 'me.name' => { LIKE => $name } };
+        $search->{'me.name'} = { LIKE => $name };
     }
+    elsif ($name) { $search->{'me.name'} = $name }
 
-    return { 'me.name' => $name };
+    if ($owner =~ /\*/) {
+
+        # if we're a wildcard search...
+        $owner =~ s/\*/%/g;
+        $search->{'me.owner_id'} = { LIKE => $owner };
+    }
+    elsif ($owner) { $search->{'me.owner_id'} = $owner }
+
+    return $search;
 }
 
 __PACKAGE__->meta->make_immutable;
