@@ -37,6 +37,8 @@
 
 <script language="javascript">
 
+dojo.require("dojox.data.JsonQueryRestStore");
+
 dojo.require("dojox.grid.EnhancedGrid");
 dojo.require("dojox.grid.enhanced.plugins.DnD");
 dojo.require("dojox.grid.enhanced.plugins.Menu");
@@ -67,6 +69,8 @@ function format_cell(dist, value) {
 }
 
 function format_rawhide(value) { format_cell('rawhide', value); }
+
+function no_sort(index) { return index < 3 }
 
 </script>
 
@@ -102,7 +106,7 @@ function format_rawhide(value) { format_cell('rawhide', value); }
 
 <select dojoType="dijit.form.FilteringSelect" id="users_select" name="users_select">
   <script type="dojo/method" event="onChange">
-   packagesGrid.setQuery(dojo.fromJson(this.value));
+    packagesGrid.setQuery(dojo.fromJson(this.value));
   </script>
     <option value="{ owner: '*' }"   selected >All Owners</option>
 [% FOREACH user = users -%]
@@ -115,6 +119,7 @@ function format_rawhide(value) { format_cell('rawhide', value); }
     dojoType="dojox.grid.EnhancedGrid"
     store="packageStore"
     query="{ name: 'perl-*' }"
+    canSort="no_sort"
     jsId="packagesGrid"
     rowsPerPage="150"
     clientSort="true"
@@ -127,13 +132,17 @@ function format_rawhide(value) { format_cell('rawhide', value); }
     <tr>
       <th field="name" cellType="dojox.grid.cells._Widget"  width="20em">Package</th>
       <th field="owner"         width="8em">Owner</th>
-      <th field="upstream_ga"   width="8em" >Upstream</th>
+      <th field="upstream_ga" sortable="false"  width="8em" >Upstream</th>
 [% FOREACH dist = dists -%]
       <th field="[% dist %]-html" cellType="dojox.grid.cells._Widget" width="8em">[% dist %]</th>
 [% END -%]
     <tr>
   </thead>
 </table>
+
+<div dojoType="dijit.layout.ContentPane" splitter="true" region="right">
+<p>Hi there!</p>
+</div>
 
 </div> [%# bordercontainer %]
 

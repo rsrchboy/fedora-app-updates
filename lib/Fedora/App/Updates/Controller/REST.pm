@@ -7,6 +7,9 @@ BEGIN { extends  'Catalyst::Controller::REST' }
 
 use DBIx::Class::ResultClass::HashRefInflator;
 
+# debugging...
+#use Smart::Comments '###';
+
 ##############################################################3
 # Helpers
 
@@ -106,9 +109,9 @@ sub packages_GET {
     my ($self, $c) = @_;
 
     # FIXME need search bits here
-    my $search = $self->query_to_dbic($c);
-
-    my $rs = $c->model('Updates::Packages')->search($search, { order_by => 'me.name' });
+    #my $search = $self->query_to_dbic($c);
+    #my $rs = $c->model('Updates::Packages')->search($search, { order_by => 'me.name' });
+    my $rs = $c->model('Updates::Packages')->search($self->query_to_dbic($c));
     my $transform_sub = sub { shift->all_versions };
 
     return $self->handle_partial_request($c, $rs, $transform_sub)
@@ -121,10 +124,49 @@ sub query_to_dbic {
     my ($self, $c) = @_;
 
     # FIXME this needs refactoring... ew
+    #my %legal = map { $_ => 1 } qw{ name owner };
+    my %legal = (owner => 'owner_id', name => 'name');
+    my $params = $c->req->parameters;
+
+    ### $params
+
+    my ($search, $attrs) = ({}, { order_by => 'me.name' });
+
+    PARAM_LOOP:
+    for my $param (keys %$params) {
+
+        if ($legal{$param}) {
+
+            # if we're a wildcard search...
+            my $value = $params->{$param};
+            $value =~ s/\*/%/g;
+            $search->{"me.$legal{$param}"} = $value =~ /%/ ? { LIKE => $value } : $value;
+            next PARAM_LOOP;
+        }
+
+        next PARAM_LOOP unless $param =~ /^sort\(/;
+
+        # so, get our sort name and ASC/DESC
+        $param =~ s/^sort\(//;
+        $param =~ s/\)$//;
+
+        my $order = $param =~ /^-/ ? '-desc' : '-asc';
+        warn $param;
+        $param =~ s/^(-| )//;
+        warn $param;
+        next PARAM_LOOP unless $legal{$param};
+        $attrs->{order_by} = { $order => "me.$legal{$param}" };
+    }
+
+    ### $search
+    ### $attrs
+
+    return ($search, $attrs);
+
     my $name  = $c->req->parameters->{name};
     my $owner = $c->req->parameters->{owner};
 
-    my $search = {};
+    my ($search, $atts) = ({}, {});
 
     if ($name =~ /\*/) {
 
@@ -144,6 +186,8 @@ sub query_to_dbic {
 
     return $search;
 }
+
+
 
 __PACKAGE__->meta->make_immutable;
 

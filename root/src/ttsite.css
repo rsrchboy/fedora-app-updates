@@ -13,6 +13,10 @@
 
 /* @import url("http://fedoraproject.org/static/css/fedora.css"); */
 
+div#head h1#page_title {
+    width: 100%;
+}
+
 /* snagged from https://admin.fedoraproject.org/pkgdb/static/css/pkgdb.css */
 
 a.bodhi

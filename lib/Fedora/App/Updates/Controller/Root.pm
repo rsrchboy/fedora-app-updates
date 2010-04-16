@@ -49,6 +49,8 @@ sub packages : Path('packages') Args(0) {
     return;
 }
 
+sub test : Local { }
+
 sub end : ActionClass('RenderView') {}
 
 __PACKAGE__->meta->make_immutable;

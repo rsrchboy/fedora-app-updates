@@ -255,11 +255,11 @@ sub update_class {
     #return 'attn' if $self->current lt $self->package->upstream_ga;
     #return 'check'
 
-    return 'error' if not defined $self->current;
-    return 'check' if not defined $self->package->upstream_ga;
+    return 'ss_sprite ss_cross' if not defined $self->current;
+    return 'ss_sprite ss_accept' if not defined $self->package->upstream_ga;
     return $self->current lt $self->package->upstream_ga
-         ? 'attn'
-         : 'check'
+         ? 'ss_sprite ss_error'
+         : 'ss_sprite ss_accept'
          ;
 }
 
