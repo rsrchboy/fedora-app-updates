@@ -3,7 +3,7 @@
  <head>
   <title>[% template.title or site.title %]</title>
 
-  <!--- dojo bits --->
+  <!-- dojo bits -->
 [% IF c.debug %]
   <script
     type="text/javascript"
@@ -27,6 +27,8 @@
   <style type="text/css" media="screen">
 [% PROCESS ttsite.css %]
   </style>
+  <link rel="stylesheet" type="text/css"
+    href="[% c.uri_for('/static/css/sprite.css') %]" />
   <link
     rel="stylesheet" type="text/css" media="print"
     href="http://fedoraproject.org/static/css/print.css"

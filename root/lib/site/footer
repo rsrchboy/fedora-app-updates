@@ -1,6 +1,7 @@
 <!-- BEGIN site/footer -->
-    <div id="copyright">&copy; [% site.copyright %].  Snakes drool; camels
-    rule!</div>
+  <div id="copyright">&copy; [% site.copyright %].  Snakes drool; camels rule!<br/>
+    Silk Icon Set by <a href="http://famfamfam.com/">Mark James</a>,
+    SilkSprite CSS by <a href="http://www.ajaxbestiary.com/Labs/SilkSprite/">Ajax Bestiary</a></div>
     <a href="http://catalyst.perl.org" alt="c!" border="0"> 
         <img border="0"
          src="[% c.uri_for('/static/images/btn_88x31_powered.png') %]"
