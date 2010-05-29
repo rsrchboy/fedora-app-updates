@@ -35,7 +35,7 @@ Log::Log4perl->easy_init($TRACE);
 opts
     my $reload  => { isa => 'Bool', default => 0, alias => 'redo'         },
     my $do_only => { isa => 'Int',  default => 0, alias => 'do-only|only' },
-    my $do_cpan => { isa => 'Bool', default => 0, }, # FIXME tmp anyways
+    my $do_cpan => { isa => 'Bool', default => 0, alias => 'do-cpan' },
     my $server  => { isa => 'Str',  default => '172.16.42.70' },
     my $fedora  => { isa => 'Str',  default => 'fedora_ng' },
     my $stage   => { isa => 'Str',  default => 'fedora_stage' },
@@ -49,10 +49,10 @@ my ($TMPFH, $TMPFILE) = tempfile;
 
 my @TABLES = qw{ packages conflicts provides requires files obsoletes };
 my %TABLES = (
-    conflicts => q{T.name, T.flags, T.epoch, 'T.version', 'T.release'},
-    provides  => q{T.name, T.flags, T.epoch, 'T.version', 'T.release'},
-    requires  => q{T.name, T.flags, T.epoch, 'T.version', 'T.release', T.pre},
-    obsoletes => q{T.name, T.flags, T.epoch, 'T.version', 'T.release'},
+    conflicts => q{T.name, T.flags, T.epoch, T.`version`, T.`release`},
+    provides  => q{T.name, T.flags, T.epoch, T.`version`, T.`release`},
+    requires  => q{T.name, T.flags, T.epoch, T.`version`, T.`release`, T.pre},
+    obsoletes => q{T.name, T.flags, T.epoch, T.`version`, T.`release`},
     files     => q{T.name, T.type},
 );
 
@@ -107,6 +107,9 @@ if ($do_cpan) {
     ### doing cpan...
 
     Class::MOP::load_class('CPAN::SQLite');
+    my @cpan_tables = qw{ auths chaps dists mods };
+
+    $stage_dbh->do("truncate table $_") for @cpan_tables;
 
     ### creating cpan/sqlite object...
     #my $obj = CPAN::SQLite->new(db_dir => dir->absolute);
@@ -118,11 +121,11 @@ if ($do_cpan) {
     ### load staging from update the cpan sqlite db...
     # hm.  for some reason db_dir doesn't seem to work as advertized...
     my $fn = file $ENV{HOME}, '.cpan', 'cpandb.sql';
-    load_table_to_staging($fn, $_) for (qw{ auths chaps dists mods });
+    load_table_to_staging($fn, $_) for @cpan_tables;
 
     ### copying cpan tables (staging) to master...
     $fu_dbh->do("replace into cpan_$_ select * from $stage.$_")
-        for (qw{ auths chaps dists mods });
+        for @cpan_tables;
 
     exit;
 }
@@ -231,7 +234,7 @@ sub pull_and_load_yum_repo {
     truncate_staging_tables();
 
     if ($sr) {
-    
+
         DEBUG 'doing src repo...';
         load_staging_from_repo($sr);
 
@@ -307,8 +310,8 @@ sub load_master_from_stage {
     );
 
     my %col = (
-        ga                => 'in_ga', 
-        updates           => 'in_updates', 
+        ga                => 'in_ga',
+        updates           => 'in_updates',
         'updates-testing' => 'in_testing',
         buildroot         => 'in_ga',
     );
