@@ -1,15 +1,18 @@
 package Fedora::App::Updates::Controller::Root;
 
 use Moose;
+use namespace::autoclean;
+use CatalystX::Alt::Routes;
+
 BEGIN { extends 'Catalyst::Controller' }
 
 #
 # Sets the actions in this controller to be registered with no prefix
 # so they function identically to actions created in MyApp.pm
 #
-__PACKAGE__->config->{namespace} = '';
+__PACKAGE__->config->{namespace} = q{};
 
-sub index : Path Args(0) {
+index_action {
     my ( $self, $c ) = @_;
 
     # get our list of dists to display
@@ -30,28 +33,33 @@ sub index : Path Args(0) {
     $c->stash->{users} = \@users;
 
     return;
-}
+};
 
-sub default : Path {
+default_action {
     my ($self, $c) = @_;
 
     $c->response->body('Page not found');
     $c->response->status(404);
-}
+};
 
-sub packages : Path('packages') Args(0) {
-    my ($self, $c) = @_;
+public packages
+    => args 0
+    => sub {
 
-    # forward to /, redirect from old path...
-    $c->res->redirect($c->uri_for('/'), 301);
-    $c->detach;
+        my ($self, $c) = @_;
 
-    return;
-}
+        # forward to /, redirect from old path...
+        $c->res->redirect($c->uri_for('/'), 301);
+        $c->detach;
 
-sub test : Local { }
+        return;
+    };
 
-sub end : ActionClass('RenderView') {}
+public test => { };
+
+end_action { };
+
+#sub end : ActionClass('RenderView') {}
 
 __PACKAGE__->meta->make_immutable;
 
