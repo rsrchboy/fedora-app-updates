@@ -2,63 +2,20 @@ package Fedora::App::Updates::Controller::REST;
 
 use Moose;
 use namespace::autoclean;
+use CatalystX::Alt::Routes;
 
 BEGIN { extends  'Catalyst::Controller::REST' }
-
-use DBIx::Class::ResultClass::HashRefInflator;
+with 'Fedora::App::Updates::ControllerRole::REST';
 
 # debugging...
 #use Smart::Comments '###';
 
-##############################################################3
-# Helpers
-
-sub status_partial_content {
-    my $self = shift;
-    my $c    = shift;
-    my %p    = Params::Validate::validate( @_, { entity => 1, }, );
-
-    $c->response->status(206);
-    $self->_set_entity($c, $p{'entity'});
-
-    return 1;
-}
-
-# take a DBIC::ResultSet and "explode" it out into an arrayref of hashrefs
-# (hashrefs being just the raw rows).
-
-sub _explode {
-    my ($self, $rs) = @_;
-
-    # return as an array of hashrefs, rather than DBIC::Rows
-    $rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
-    return [ $rs->all ];
-}
-
-sub handle_partial_request {
-    my ($self, $c, $rs, $transform_sub) = @_;
-
-    return unless my $range = $c->req->header('Range');
-
-    my $total = $rs->count;
-
-    # break out our start and end ranges...
-    # we do sometimes see 'items=0-'
-    $range =~ s/items=//;
-    my ($from, $to) = split /-/, $range;
-    $to = $total unless $to && $to < $total;
-
-    # now, touch up our result set...
-    $rs = $rs->search(undef, { rows => $to - $from + 1, offset => $from });
-
-    $c->res->header('Content-Range' => "items $from-$to/$total");
-    return $self->status_partial_content($c, entity => $transform_sub->($rs));
-}
-
-##############################################################3
+##############################################################
 # Actions
 
-sub package_names : Local ActionClass('REST') { }
+#sub package_names : Local ActionClass('REST') { }
+
+public package_names => rest { };
 
 sub package_names_GET {
     my ($self, $c) = @_;
